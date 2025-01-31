@@ -63,14 +63,18 @@ ls(char *path, int showHidden)
         printf(1, "ls: cannot stat %s\n", buf);
         continue;
       } else {
-          char *filename = fmtname(buf);
-          if (showHidden || *filename != '.') {
-        if (st.type == T_DIR) {
-          printf(1, "%s/ %d %d %d\n", fmtname(buf), st.type, st.ino, st.size);
-        } else {
-          printf(1, "%s %d %d %d\n", fmtname(buf), st.type, st.ino, st.size);
-        }
+        char *filename = fmtname(buf);
+        if (showHidden || *filename != '.')
+        {
+          if (st.type == T_DIR)
+          {
+            printf(1, "%s/ %d %d %d\n", filename, st.type, st.ino, st.size);
           }
+          else
+          {
+            printf(1, "%s %d %d %d\n", filename, st.type, st.ino, st.size);
+          }
+        }
       }
     }
     break;
