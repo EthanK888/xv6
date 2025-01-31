@@ -59,26 +59,18 @@ ls(char *path, int showHidden)
         continue;
       memmove(p, de.name, DIRSIZ);
       p[DIRSIZ] = 0;
+      if(stat(buf, &st) < 0){
+        printf(1, "ls: cannot stat %s\n", buf);
+        continue;
+      } else {
+        if (st.type == T_DIR) {
+          printf(1, "%s/ %d %d %d\n", fmtname(buf), st.type, st.ino, st.size);
+        } else {
+          printf(1, "%s %d %d %d\n", fmtname(buf), st.type, st.ino, st.size);
+        }
+      }
       char *filename = fmtname(buf);
-      if (showHidden || *filename != '.')
-      {
-        if (stat(buf, &st) < 0)
-        {
-          printf(1, "ls: cannot stat %s\n", buf);
-          continue;
-        }
-        else
-        {
-          if (st.type == T_DIR)
-          {
-            printf(1, "%s/ %d %d %d\n", fmtname(buf), st.type, st.ino, st.size);
-          }
-          else
-          {
-            printf(1, "%s %d %d %d\n", fmtname(buf), st.type, st.ino, st.size);
-          }
-        }
-
+      if (showHidden || *filename != '.') {
         printf(1, "%s %d %d %d\n", fmtname(buf), st.type, st.ino, st.size);
       }
     }
