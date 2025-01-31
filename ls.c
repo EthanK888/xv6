@@ -23,7 +23,7 @@ fmtname(char *path)
 }
 
 void
-ls(char *path)
+ls(char *path, int showHidden)
 {
   char buf[512], *p;
   int fd;
@@ -59,15 +59,27 @@ ls(char *path)
         continue;
       memmove(p, de.name, DIRSIZ);
       p[DIRSIZ] = 0;
-      if(stat(buf, &st) < 0){
-        printf(1, "ls: cannot stat %s\n", buf);
-        continue;
-      } else {
-        if (st.type == T_DIR) {
-          printf(1, "%s/ %d %d %d\n", fmtname(buf), st.type, st.ino, st.size);
-        } else {
-          printf(1, "%s %d %d %d\n", fmtname(buf), st.type, st.ino, st.size);
+      char *filename = fmtname(buf);
+      if (showHidden || *filename != '.')
+      {
+        if (stat(buf, &st) < 0)
+        {
+          printf(1, "ls: cannot stat %s\n", buf);
+          continue;
         }
+        else
+        {
+          if (st.type == T_DIR)
+          {
+            printf(1, "%s/ %d %d %d\n", fmtname(buf), st.type, st.ino, st.size);
+          }
+          else
+          {
+            printf(1, "%s %d %d %d\n", fmtname(buf), st.type, st.ino, st.size);
+          }
+        }
+
+        printf(1, "%s %d %d %d\n", fmtname(buf), st.type, st.ino, st.size);
       }
     }
     break;
@@ -79,12 +91,17 @@ int
 main(int argc, char *argv[])
 {
   int i;
+  int showHidden = 0;
 
+  if (strcmp(argv[argc-1], "-a") == 0) {
+    showHidden = 1;
+    argc--;
+  }
   if(argc < 2){
-    ls(".");
+    ls(".", showHidden);
     exit();
   }
   for(i=1; i<argc; i++)
-    ls(argv[i]);
+    ls(argv[i], showHidden);
   exit();
 }
