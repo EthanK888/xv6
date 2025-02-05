@@ -9,6 +9,15 @@
 #define S 2
 #define D 3
 
+//helper function... should we move this to some reusable spot in the future maybe? 
+//homemade tolower:)
+char to_lower(char c) {
+    if (c >= 'A' && c <= 'Z') {
+        return c + 32;
+    }
+    return c; 
+}
+
 // print based on flag
 // this is always called on the LAST occurence in a row of a line.
 void printuniqueline(char *line, int count, int flag)
@@ -50,7 +59,7 @@ void uniq(int fd, int flag)
             if (strcmp(line, lastline) != 0)
             {
                 if (*lastline != '\0') printuniqueline(lastline, lastcount, flag); // print last line
-                strcpy(lastline, line);                     // reset last line to start the count over
+                strcpy(lastline, line);                         // reset last line to start the count over
                 lastcount = 1;
             }
             else
@@ -61,15 +70,27 @@ void uniq(int fd, int flag)
         }
         else
         {
-            // if (flag == I) buf[0] = tolower(buf[0]); //to lower everything for the i flag
+            if (flag == I) buf[0] = to_lower(buf[0]); //to lower everything for the i flag
             line[index++] = buf[0]; // add another char to our line
         }
     }
 
     if (index > 0)
-    { // Print last line if no trailing '\n'
+    {
         line[index] = '\0';
-        printuniqueline(line, lastcount, flag);
+        // check the last two lines
+        if (strcmp(line, lastline) != 0)
+        {
+            printuniqueline(lastline, lastcount, flag);
+            lastcount = 1;
+            // print last line
+            printuniqueline(line, lastcount, flag);
+        }
+        else
+        {
+            lastcount++;
+            printuniqueline(line, lastcount, flag); // print last line
+        }
     }
 }
 
