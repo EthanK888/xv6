@@ -20,9 +20,4 @@ Sleep system call was made if the arguments were correct. I then implemented mak
 
 (Molly) I have the git repo cloned on my pc at home (Windows AMD Ryzen 7 5800X using WSL) and also my macbook air which i was able to 
         just install qemu thru homebrew on and run. but im mostly doing dev on my pc. We all tackled the ls function together and I took on implementing uniq.
-        I originally developed it with an assumption that a "line" would have a max size like 512 or 1024.. then i figured i can just make the max size to the 
-        file size of the input cuz thats the upper limit after all. 
-
-        to update
-        - dont actually lowercase the output strings for -i 
-        - cat filename | uniq 
+        I originally developed it with an assumption that a "line" would have a max size like 512 or 1024
