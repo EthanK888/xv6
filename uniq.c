@@ -3,19 +3,21 @@
 #include "user.h"
 
 // functionality based off the structure of the cat program!
-#define MAX_LINE 512 // assume a line will never be longer than 512 bytes
+#define MAX_LINE 1024 // assume a line will never be longer than 1024 bytes
 
 #define I 1
 #define S 2
 #define D 3
 
-//helper function... should we move this to some reusable spot in the future maybe? 
-//homemade tolower:)
-char to_lower(char c) {
-    if (c >= 'A' && c <= 'Z') {
+// helper function... should we move this to some reusable spot in the future maybe?
+// homemade tolower:)
+char to_lower(char c)
+{
+    if (c >= 'A' && c <= 'Z')
+    {
         return c + 32;
     }
-    return c; 
+    return c;
 }
 
 // print based on flag
@@ -58,7 +60,8 @@ void uniq(int fd, int flag)
             // new unique line found!
             if (strcmp(line, lastline) != 0)
             {
-                if (*lastline != '\0') printuniqueline(lastline, lastcount, flag); // print last line
+                if (*lastline != '\0')
+                    printuniqueline(lastline, lastcount, flag); // print last line
                 strcpy(lastline, line);                         // reset last line to start the count over
                 lastcount = 1;
             }
@@ -70,8 +73,9 @@ void uniq(int fd, int flag)
         }
         else
         {
-            if (flag == I) buf[0] = to_lower(buf[0]); //to lower everything for the i flag
-            line[index++] = buf[0]; // add another char to our line
+            if (flag == I)
+                buf[0] = to_lower(buf[0]); // to lower everything for the i flag
+            line[index++] = buf[0];        // add another char to our line
         }
     }
 
@@ -102,8 +106,10 @@ int main(int argc, char *argv[])
     char *filename = 0;
     int flag = 0; // no flag
 
-    if (argc <= 1)
+    if (argc == 1)
     {
+        // read from stdin
+        uniq(0, flag);
         exit();
     }
 
@@ -132,12 +138,21 @@ int main(int argc, char *argv[])
             filename = argv[i];
         }
     }
-    if ((fd = open(filename, 0)) < 0)
+    if (filename)
     {
-        printf(1, "uniq: cannot open %s\n", argv[i]);
+        if ((fd = open(filename, 0)) < 0)
+        {
+            printf(1, "uniq: cannot open %s\n", argv[i]);
+            exit();
+        }
+        uniq(fd, flag);
+        close(fd);
         exit();
     }
-    uniq(fd, flag);
-    close(fd);
-    exit();
+    else
+    {
+        // stdin
+        uniq(0, flag);
+        exit();
+    }
 }
