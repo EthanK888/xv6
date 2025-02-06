@@ -20,4 +20,5 @@ Sleep system call was made if the arguments were correct. I then implemented mak
 
 (Molly) I have the git repo cloned on my pc at home (Windows AMD Ryzen 7 5800X using WSL) and also my macbook air which i was able to 
         just install qemu thru homebrew on and run. but im mostly doing dev on my pc. We all tackled the ls function together and I took on implementing uniq.
-        I originally developed it with an assumption that a "line" would have a max size like 512 or 1024
+        I did make an assumption that a line would have max 1024 bytes instead of dynamically allocating memory for really long lines in a file. it looked to me
+        like distributions of linux have that for uniq? is that right? and yeah i added a text file in the build called txtfile for easy testing!
