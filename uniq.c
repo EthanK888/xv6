@@ -3,10 +3,10 @@
 #include "user.h"
 
 // functionality based off the structure of the cat program!
-#define MAX_LINE 1024 // assume a line will never be longer than 1024 bytes
+#define MAX_LINE 512 // assume a line will never be longer than 512 bytes
 
 #define I 1
-#define S 2
+#define C 2
 #define D 3
 
 // helper function... should we move this to some reusable spot in the future maybe?
@@ -20,11 +20,40 @@ char to_lower(char c)
     return c;
 }
 
+// a strcmp that does a special comparison for the i flag with two lowercased versions of the strings
+//dont wanna ACTUALLY lowercase the originals.
+int line_compare(char *line1, char *line2, int flag)
+{
+    if (flag == I)
+    {
+        char lower_line1[MAX_LINE];
+        char lower_line2[MAX_LINE];
+        int index = 0;
+        
+        while (*line1 != '\0' && index < MAX_LINE-1) {
+            lower_line1[index] = to_lower(*line1);
+            lower_line2[index] = to_lower(*line2);
+            line1++;
+            line2++;
+            index++;
+        }
+        //end of string
+        lower_line1[index] = '\0';
+        lower_line2[index] = '\0';
+
+        return strcmp(lower_line1, lower_line2);
+    }
+    else
+    {
+        return strcmp(line1, line2);
+    }
+}
+
 // print based on flag
 // this is always called on the LAST occurence in a row of a line.
 void printuniqueline(char *line, int count, int flag)
 {
-    if (flag == S)
+    if (flag == C)
     {
         // print number & value
         printf(1, "%d %s\n", count, line);
@@ -58,7 +87,7 @@ void uniq(int fd, int flag)
         {                       // end line at \n OR buffer full
             line[index] = '\0'; // null terminates (so that trailing characters wont get leftover)
             // new unique line found!
-            if (strcmp(line, lastline) != 0)
+            if (line_compare(line, lastline, flag) != 0)
             {
                 if (*lastline != '\0')
                     printuniqueline(lastline, lastcount, flag); // print last line
@@ -73,8 +102,6 @@ void uniq(int fd, int flag)
         }
         else
         {
-            if (flag == I)
-                buf[0] = to_lower(buf[0]); // to lower everything for the i flag
             line[index++] = buf[0];        // add another char to our line
         }
     }
@@ -83,7 +110,7 @@ void uniq(int fd, int flag)
     {
         line[index] = '\0';
         // check the last two lines
-        if (strcmp(line, lastline) != 0)
+        if (line_compare(line, lastline, flag) != 0)
         {
             printuniqueline(lastline, lastcount, flag);
             lastcount = 1;
@@ -122,8 +149,8 @@ int main(int argc, char *argv[])
             char letter = *arg;
             switch (letter)
             {
-            case 's':
-                flag = S;
+            case 'c':
+                flag = C;
                 break;
             case 'i':
                 flag = I;

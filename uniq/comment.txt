@@ -1,1 +1,1 @@
-i included txtfile in the makefile so u can use it for testing! 
+i included txtfile in the makefile so you can use it for testing! 
