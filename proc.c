@@ -499,6 +499,25 @@ kill(int pid)
   return -1;
 }
 
+//return numticks for the given pid.
+int
+ticks_run(int pid)
+{
+  struct proc *p;
+  int ticks;
+
+  acquire(&ptable.lock);
+  for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+    if(p->pid == pid){
+      ticks = p->numticks;
+      release(&ptable.lock);
+      return ticks;
+    }
+  }
+  release(&ptable.lock);
+  return -1;
+}
+
 //PAGEBREAK: 36
 // Print a process listing to console.  For debugging.
 // Runs when user types ^P on console.

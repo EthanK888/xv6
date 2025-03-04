@@ -89,3 +89,12 @@ sys_uptime(void)
   release(&tickslock);
   return xticks;
 }
+
+int sys_ticks_run(void)
+{
+  int pid;
+
+  if (argint(0, &pid) < 0)
+    return ticks_run(myproc()->pid);
+  return ticks_run(pid);
+}
