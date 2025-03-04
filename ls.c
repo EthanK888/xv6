@@ -4,7 +4,7 @@
 #include "fs.h"
 
 char*
-fmtname(char *path)
+fmtname(char *path, short type)
 {
   static char buf[DIRSIZ+1];
   char *p;
@@ -14,11 +14,27 @@ fmtname(char *path)
     ;
   p++;
 
-  // Return blank-padded name.
-  if(strlen(p) >= DIRSIZ)
+  // Return blank-padded name, no padding if strlen(p) >= DIRSIZ
+  if(strlen(p) >= DIRSIZ){
+    if(type == T_DIR){
+      //Add '/' if directory
+      memset(p+strlen(p), '/', 1);
+    }
     return p;
+  }
+
+  //Move file name into buf
   memmove(buf, p, strlen(p));
-  memset(buf+strlen(p), ' ', DIRSIZ-strlen(p));
+
+  if(type == T_FILE){
+    //Pad it
+    memset(buf+strlen(p), ' ', DIRSIZ-strlen(p));
+  }
+  //If directory, add '/' then pad
+  else if(type == T_DIR){
+    memset(buf+strlen(p), '/', 1);
+    memset(buf+strlen(p)+1, ' ', DIRSIZ-strlen(p)+1);
+  }
   return buf;
 }
 
@@ -30,11 +46,13 @@ ls(char *path, int showHidden)
   struct dirent de;
   struct stat st;
 
+  //Open file at end of path
   if((fd = open(path, 0)) < 0){
     printf(2, "ls: cannot open %s\n", path);
     return;
   }
 
+  //Save info about the opened file into st using fstat
   if(fstat(fd, &st) < 0){
     printf(2, "ls: cannot stat %s\n", path);
     close(fd);
@@ -43,7 +61,7 @@ ls(char *path, int showHidden)
 
   switch(st.type){
   case T_FILE:
-    printf(1, "%s %d %d %d\n", fmtname(path), st.type, st.ino, st.size);
+    printf(1, "%s %d %d %d\n", fmtname(path, st.type), st.type, st.ino, st.size);
     break;
 
   case T_DIR:
@@ -54,6 +72,7 @@ ls(char *path, int showHidden)
     strcpy(buf, path);
     p = buf+strlen(buf);
     *p++ = '/';
+
     while(read(fd, &de, sizeof(de)) == sizeof(de)){
       if(de.inum == 0)
         continue;
@@ -63,17 +82,10 @@ ls(char *path, int showHidden)
         printf(1, "ls: cannot stat %s\n", buf);
         continue;
       } else {
-        char *filename = fmtname(buf);
+        char *filename = fmtname(buf, st.type);
         if (showHidden || *filename != '.')
         {
-          if (st.type == T_DIR)
-          {
-            printf(1, "%s/ %d %d %d\n", filename, st.type, st.ino, st.size);
-          }
-          else
-          {
-            printf(1, "%s %d %d %d\n", filename, st.type, st.ino, st.size);
-          }
+          printf(1, "%s %d %d %d\n", filename, st.type, st.ino, st.size);
         }
       }
     }

@@ -1,0 +1,1 @@
+i included txtfile in the makefile so you can use it for testing! 
