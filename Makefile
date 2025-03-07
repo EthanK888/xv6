@@ -184,6 +184,7 @@ UPROGS=\
 	_wc\
 	_zombie\
 	_uniq\
+	_ticks_run_test\
 
 fs.img: mkfs README txtfile $(UPROGS)
 	./mkfs fs.img README txtfile $(UPROGS)

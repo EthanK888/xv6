@@ -344,7 +344,7 @@ scheduler(void)
       switchuvm(p);
       //this is where process starts
       p->state = RUNNING;
-
+      
       swtch(&(c->scheduler), p->context);
       switchkvm();
 
