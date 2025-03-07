@@ -2,7 +2,9 @@
 #include "stat.h"
 #include "user.h"
 
-int main(void) {
+#define LOOPS 10000
+
+/*int main(void) {
     int pid = getpid();  //get current process ID
     printf(1, "PID: %d\n", pid);
 
@@ -19,12 +21,7 @@ int main(void) {
     printf(1, "ticks running: %d\n", ticks_used);
 
     exit();
-}
-
-/*
-#include "types.h"
-#include "stat.h"
-#include "user.h"
+}*/
 
 int
 main(void)
@@ -48,15 +45,32 @@ main(void)
     printf(1, "fork failed\n");
   } else if(pid == 0) {
     //child process
-    printf(1, "child process - PID %d ticks: %d\n", getpid(), ticks_run(getpid()));
-    exit();
+    pid = fork();
+
+    if(pid < 0) {
+      printf(1, "fork failed\n");
+    } else if(pid == 0) {
+      //grandchild process
+      for(int i = 0; i < LOOPS; i++){
+        printf(1, "grandchild process - PID %d ticks: %d\n", getpid(), ticks_run(getpid()));
+      }
+      exit();
+    }
+    else{
+      //child process
+      for(int i = 0; i < LOOPS; i++){
+        printf(1, "child process - PID %d ticks: %d\n", getpid(), ticks_run(getpid()));
+      }
+      exit();
+    }
   } else {
     //parent process
-    wait();
-    printf(1, "parent process after child exit ticks: %d\n", ticks_run(getpid()));
+    for(int i = 0; i < LOOPS; i++){
+      printf(1, "parent process - PID %d ticks: %d\n", getpid(), ticks_run(getpid()));
+    }
+    exit();
   }
   
   exit();
 }
-*/
 
