@@ -2,7 +2,7 @@
 #include "stat.h"
 #include "user.h"
 
-#define LOOPS 10000
+#define LOOPS 10
 
 /*int main(void) {
     int pid = getpid();  //get current process ID
@@ -21,8 +21,8 @@
     printf(1, "ticks running: %d\n", ticks_used);
 
     exit();
-}*/
-
+}
+*/
 int
 main(void)
 {

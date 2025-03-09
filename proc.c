@@ -7,6 +7,8 @@
 #include "proc.h"
 #include "spinlock.h"
 
+
+
 //For stride:
 #define STRIDE_CONSTANT 10000
 #define TICKET_MAX 100
@@ -225,6 +227,13 @@ fork(void)
   np->parent = curproc;
   *np->tf = *curproc->tf;
 
+  #ifdef STRIDE
+  // Copy stride scheduler values
+  np->numTickets = curproc->numTickets;
+  np->stride = curproc->stride;
+  np->passValue = curproc->passValue;
+  #endif
+
   // Clear %eax so that fork returns 0 in the child.
   np->tf->eax = 0;
 
@@ -410,6 +419,9 @@ void scheduler(void){
       //this is where process starts
       min->state = RUNNING;
       
+      // Increment pass value by stride
+      p->passValue += p->stride;
+
       swtch(&(c->scheduler), min->context);
       switchkvm();
 
@@ -658,4 +670,24 @@ procdump(void)
     }
     cprintf("\n");
   }
+}
+
+
+// Implementation of num_tickets system call
+int
+num_tickets(int pid)
+{
+#ifdef STRIDE
+  struct proc *p;
+  
+  acquire(&ptable.lock);
+  for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+    if(p->pid == pid && (p->state == RUNNABLE || p->state == RUNNING)){
+      release(&ptable.lock);
+      return p->numTickets;
+    }
+  }
+  release(&ptable.lock);
+#endif
+  return -1; 
 }
