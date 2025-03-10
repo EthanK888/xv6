@@ -85,6 +85,9 @@ else
 CFLAGS+= -DDEFAULT
 endif
 
+
+
+
 ASFLAGS = -m32 -gdwarf-2 -Wa,-divide
 # FreeBSD ld wants ``elf_i386_fbsd''
 LDFLAGS += -m $(shell $(LD) -V | grep elf_i386 2>/dev/null | head -n 1)
@@ -192,6 +195,8 @@ UPROGS=\
 	_zombie\
 	_uniq\
 	_ticks_run_test\
+	_stridetest\
+	_tickets_test\
 
 fs.img: mkfs README txtfile $(UPROGS)
 	./mkfs fs.img README txtfile $(UPROGS)
@@ -251,6 +256,7 @@ qemu-gdb: fs.img xv6.img .gdbinit
 qemu-nox-gdb: fs.img xv6.img .gdbinit
 	@echo "*** Now run 'gdb'." 1>&2
 	$(QEMU) -nographic $(QEMUOPTS) -S $(QEMUGDB)
+
 
 # CUT HERE
 # prepare dist for students
