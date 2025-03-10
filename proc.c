@@ -7,6 +7,11 @@
 #include "proc.h"
 #include "spinlock.h"
 
+//For stride:
+#define STRIDE_CONSTANT 10000
+#define TICKET_MAX 100
+#define TICKET_MIN 1
+
 struct {
   struct spinlock lock;
   struct proc proc[NPROC];
@@ -89,6 +94,25 @@ found:
   p->state = EMBRYO;
   p->pid = nextpid++;
   p->numticks = 0;
+
+  #ifdef STRIDE
+    p->numTickets = rand() % (TICKET_MAX - TICKET_MIN + 1) + TICKET_MIN;  //Give process random number of tickets
+    p->stride = STRIDE_CONSTANT/p->numTickets;  //Process stride value = Constant/numTickets
+    
+    //Set starting passValue to minimum passValue of all current processes
+    int temp;
+    
+    //Loop through all processing, getting min passValue
+    struct proc *t;
+    t = ptable.proc;
+    temp = t->passValue;
+    t++;
+    for(; t < &ptable.proc[NPROC]; t++){
+      if(t->passValue < temp) temp = t->passValue;
+    }
+
+    p->passValue = temp;
+  #endif
 
   release(&ptable.lock);
 
@@ -320,6 +344,86 @@ wait(void)
 //  - swtch to start running that process
 //  - eventually that process transfers control
 //      via swtch back to the scheduler.
+
+void scheduler(void){
+  struct proc *p;
+  struct cpu *c = mycpu();
+  c->proc = 0;
+  
+  #ifdef DEFAULT
+    //Default RR scheduler
+    for(;;){
+      // Enable interrupts on this processor.
+      sti();
+
+      // Loop over process table looking for process to run.
+      acquire(&ptable.lock);
+      for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+        if(p->state != RUNNABLE)
+          continue;
+
+        // Switch to chosen process.  It is the process's job
+        // to release ptable.lock and then reacquire it
+        // before jumping back to us.
+        c->proc = p;
+        switchuvm(p);
+        //this is where process starts
+        p->state = RUNNING;
+        
+        swtch(&(c->scheduler), p->context);
+        switchkvm();
+
+        // Process is done running for now.
+        // It should have changed its p->state before coming back.
+        c->proc = 0;
+        //this is where 
+      }
+      release(&ptable.lock);
+    }
+  #elif defined(STRIDE)
+    //Stride scheduler
+    for(;;){
+      sti();
+
+      acquire(&ptable.lock);
+      
+      int minPassValue;
+      struct proc *p, *min;
+      p = ptable.proc;
+      min = p;
+      minPassValue = p->passValue;
+      p++;
+      for(; p < &ptable.proc[NPROC]; p++){
+        if(p->state != RUNNABLE)
+          continue;
+        else if(p->passValue < minPassValue){
+          minPassValue = p->passValue;
+          min = p;
+        }
+      }
+
+      // Switch to chosen process.  It is the process's job
+      // to release ptable.lock and then reacquire it
+      // before jumping back to us.
+      c->proc = min;
+      switchuvm(min);
+      //this is where process starts
+      min->state = RUNNING;
+      
+      swtch(&(c->scheduler), min->context);
+      switchkvm();
+
+      // Process is done running for now.
+      // It should have changed its p->state before coming back.
+      c->proc = 0;
+
+      release(&ptable.lock);
+    }
+  #endif
+
+}
+
+/*
 void
 scheduler(void)
 {
@@ -344,7 +448,7 @@ scheduler(void)
       switchuvm(p);
       //this is where process starts
       p->state = RUNNING;
-
+      
       swtch(&(c->scheduler), p->context);
       switchkvm();
 
@@ -357,6 +461,7 @@ scheduler(void)
 
   }
 }
+*/
 
 // Enter scheduler.  Must hold only ptable.lock
 // and have changed proc->state. Saves and restores
