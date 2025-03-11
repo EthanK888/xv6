@@ -407,32 +407,35 @@ void scheduler(void){
       minPassValue = p->passValue;
       p++;
       for(; p < &ptable.proc[NPROC]; p++){
-        if(p->state != RUNNABLE)
+        if(p->state != RUNNABLE){
+          //cprintf("Non runnable states: %d %s %s\n", min->pid, min->name, min->state);
           continue;
+        }
         else if(p->passValue < minPassValue){
           minPassValue = p->passValue;
           min = p;
         }
       }
 
-      // Switch to chosen process.  It is the process's job
-      // to release ptable.lock and then reacquire it
-      // before jumping back to us.
-      c->proc = min;
-      switchuvm(min);
-      //this is where process starts
-      cprintf("I am scheduling: %d %d %s\n", p->pid, p->numticks, p->name);
-      min->state = RUNNING;
-      
-      // Increment pass value by stride
-      p->passValue += p->stride;
+      //if(min->state == RUNNABLE){
+        // Switch to chosen process.  It is the process's job
+        // to release ptable.lock and then reacquire it
+        // before jumping back to us.
+        c->proc = min;
+        switchuvm(min);
+        //this is where process starts
+        cprintf("I am scheduling: %d %d %s %d %d\n", min->pid, min->numticks, min->name, min->stride, min->passValue);
+        min->state = RUNNING;
+        
+        
 
-      swtch(&(c->scheduler), min->context);
-      switchkvm();
+        swtch(&(c->scheduler), min->context);
+        switchkvm();
 
-      // Process is done running for now.
-      // It should have changed its p->state before coming back.
-      c->proc = 0;
+        // Process is done running for now.
+        // It should have changed its p->state before coming back.
+        c->proc = 0;
+      //}
 
       release(&ptable.lock);
     }

@@ -110,6 +110,10 @@ trap(struct trapframe *tf)
   if(myproc() && myproc()->state == RUNNING &&
      tf->trapno == T_IRQ0+IRQ_TIMER) {
       myproc()->numticks++; //increase tick number
+      #ifdef STRIDE  
+        // Increment pass value by stride
+        myproc()->passValue += myproc()->stride;
+      #endif
       yield();
     }
 
