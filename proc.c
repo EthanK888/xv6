@@ -98,7 +98,7 @@ found:
   p->numticks = 0;
 
   #ifdef STRIDE
-    p->numTickets = rand() % (TICKET_MAX - TICKET_MIN + 1) + TICKET_MIN;  //Give process random number of tickets
+    p->numTickets = get_random(TICKET_MIN, TICKET_MAX);
     p->stride = STRIDE_CONSTANT/p->numTickets;  //Process stride value = Constant/numTickets
     
     //Set starting passValue to minimum passValue of all current processes
@@ -690,4 +690,12 @@ num_tickets(int pid)
   release(&ptable.lock);
 #endif
   return -1; 
+}
+
+unsigned long randstate = 1;
+unsigned int
+get_random(unsigned int min, unsigned int max)
+{
+  randstate = (randstate * 1664525 + 1013904223) % (max-min+1);
+  return randstate + min;
 }
