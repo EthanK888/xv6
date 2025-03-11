@@ -26,6 +26,9 @@ extern void forkret(void);
 extern void trapret(void);
 
 static void wakeup1(void *chan);
+unsigned long randstate = 1;
+unsigned int
+get_random(unsigned int min, unsigned int max);
 
 void
 pinit(void)
@@ -692,7 +695,6 @@ num_tickets(int pid)
   return -1; 
 }
 
-unsigned long randstate = 1;
 unsigned int
 get_random(unsigned int min, unsigned int max)
 {
