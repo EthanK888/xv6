@@ -400,13 +400,13 @@ void scheduler(void){
 
       acquire(&ptable.lock);
       
-      int minPassValue;
-      struct proc *min;
-      p = ptable.proc;
-      min = p;
-      minPassValue = p->passValue;
-      p++;
-      for(; p < &ptable.proc[NPROC]; p++){
+      int minPassValue = __INT_MAX__;
+      struct proc *min = 0;
+      //p = ptable.proc;
+      //min = p;
+      //minPassValue = p->passValue;
+      //p++;
+      for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
         if(p->state != RUNNABLE){
           //cprintf("Non runnable states: %d %s %s\n", min->pid, min->name, min->state);
           continue;
@@ -415,6 +415,11 @@ void scheduler(void){
           minPassValue = p->passValue;
           min = p;
         }
+      }
+
+      if (!min) {
+        release(&ptable.lock);
+        continue;
       }
 
       //if(min->state == RUNNABLE){

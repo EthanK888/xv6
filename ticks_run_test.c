@@ -2,7 +2,7 @@
 #include "stat.h"
 #include "user.h"
 
-#define LOOPS 1000000000
+#define LOOPS 100000000000
 
 /*int main(void) {
     int pid = getpid();  //get current process ID
