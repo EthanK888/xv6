@@ -400,7 +400,7 @@ void scheduler(void){
       acquire(&ptable.lock);
       
       int minPassValue;
-      struct proc *p, *min;
+      struct proc *min;
       p = ptable.proc;
       min = p;
       minPassValue = p->passValue;
