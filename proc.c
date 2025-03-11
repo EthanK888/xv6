@@ -380,6 +380,7 @@ void scheduler(void){
         c->proc = p;
         switchuvm(p);
         //this is where process starts
+        cprintf("I am scheduling: %d %d %s", p->pid, p->numticks, p->name);
         p->state = RUNNING;
         
         swtch(&(c->scheduler), p->context);
@@ -420,6 +421,7 @@ void scheduler(void){
       c->proc = min;
       switchuvm(min);
       //this is where process starts
+      cprintf("I am scheduling: %d %d %s", p->pid, p->numticks, p->name);
       min->state = RUNNING;
       
       // Increment pass value by stride

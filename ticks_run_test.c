@@ -2,7 +2,7 @@
 #include "stat.h"
 #include "user.h"
 
-#define LOOPS 10
+#define LOOPS 100
 
 /*int main(void) {
     int pid = getpid();  //get current process ID
@@ -49,27 +49,24 @@ main(void)
     } else if(pid == 0) {
       //grandchild process
       int pid = getpid();
-      printf(1, "grandchild process - PID %d tickets: %d\n", pid, num_tickets(pid));
+      //printf(1, "grandchild process - PID %d tickets: %d\n", pid, num_tickets(pid));
       for(int i = 0; i < LOOPS; i++){
-        printf(1, "grandchild process - PID %d ticks: %d\n", pid, ticks_run(pid));
       }
       exit();
     }
     else{
       //child process
       int pid = getpid();
-      printf(1, "child process - PID %d tickets: %d\n", pid, num_tickets(pid));
+      //printf(1, "child process - PID %d tickets: %d\n", pid, num_tickets(pid));
       for(int i = 0; i < LOOPS; i++){
-        printf(1, "child process - PID %d ticks: %d\n", pid, ticks_run(pid));
       }
       exit();
     }
   } else {
     //parent process
     int pid = getpid();
-    printf(1, "child process - PID %d tickets: %d\n", pid, num_tickets(pid));
+    //printf(1, "child process - PID %d tickets: %d\n", pid, num_tickets(pid));
     for(int i = 0; i < LOOPS; i++){
-      printf(1, "parent process - PID %d ticks: %d\n", pid, ticks_run(pid));
     }
     exit();
   }
