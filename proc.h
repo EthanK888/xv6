@@ -52,7 +52,7 @@ struct proc {
   int numticks;                // Process time
   //Only for stride scheduling
   #ifdef STRIDE
-  int numTickets;            // Process tickets
+  unsigned int numTickets;            // Process tickets
   int stride;                // Process stride value
   int passValue;             // Current total stride
   #endif         
