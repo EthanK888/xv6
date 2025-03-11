@@ -21,13 +21,16 @@ main(void)
     
     for(int i = 0; i < 100000; i++) {
       if(i % 100000 == 0) {
-        printf(1, "Child 1 (PID %d) still working (%d ticks)...\n", 
-               pid, ticks_run(pid));
+        //printf(1, "Child 1 (PID %d) still working (%d ticks)...\n", 
+             //  pid, ticks_run(pid));
+             char *arr[5]={};
+             exec("stressfs",arr);
+
       }
     }
     
-    printf(1, "Child 1 (PID %d) finished with %d ticks\n", 
-           pid, ticks_run(pid));
+    //printf(1, "Child 1 (PID %d) finished with %d ticks\n", 
+      //     pid, ticks_run(pid));
     exit();
   }
   
@@ -42,8 +45,8 @@ main(void)
     
     for(int i = 0; i < 100000; i++) {
       if(i % 100000 == 0) {
-        printf(1, "Child 2 (PID %d) still working (%d ticks)...\n", 
-               pid, ticks_run(pid));
+       // printf(1, "Child 2 (PID %d) still working (%d ticks)...\n", 
+               //pid, ticks_run(pid));
       }
     }
     
