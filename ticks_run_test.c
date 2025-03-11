@@ -30,9 +30,6 @@ main(void)
   pid = getpid();
   printf(1, "current process- PID %d ticks: %d\n", pid, ticks_run(pid));
   
-  for(int i = 0; i < 100000; i++) {
-    ;
-  }
   
   printf(1, "after computation ticks: %d\n", ticks_run(pid));
   
@@ -51,22 +48,28 @@ main(void)
       printf(1, "fork failed\n");
     } else if(pid == 0) {
       //grandchild process
+      int pid = getpid();
+      printf(1, "grandchild process - PID %d tickets: %d\n", pid, num_tickets(pid));
       for(int i = 0; i < LOOPS; i++){
-        printf(1, "grandchild process - PID %d ticks: %d\n", getpid(), ticks_run(getpid()));
+        printf(1, "grandchild process - PID %d ticks: %d\n", pid, ticks_run(pid));
       }
       exit();
     }
     else{
       //child process
+      int pid = getpid();
+      printf(1, "child process - PID %d tickets: %d\n", pid, num_tickets(pid));
       for(int i = 0; i < LOOPS; i++){
-        printf(1, "child process - PID %d ticks: %d\n", getpid(), ticks_run(getpid()));
+        printf(1, "child process - PID %d ticks: %d\n", pid, ticks_run(pid));
       }
       exit();
     }
   } else {
     //parent process
+    int pid = getpid();
+    printf(1, "child process - PID %d tickets: %d\n", pid, num_tickets(pid));
     for(int i = 0; i < LOOPS; i++){
-      printf(1, "parent process - PID %d ticks: %d\n", getpid(), ticks_run(getpid()));
+      printf(1, "parent process - PID %d ticks: %d\n", pid, ticks_run(pid));
     }
     exit();
   }
