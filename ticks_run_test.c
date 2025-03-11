@@ -48,7 +48,7 @@ main(void)
       printf(1, "fork failed\n");
     } else if(pid == 0) {
       //grandchild process
-      int pid = getpid();
+      //int pid = getpid();
       //printf(1, "grandchild process - PID %d tickets: %d\n", pid, num_tickets(pid));
       for(int i = 0; i < LOOPS; i++){
       }
@@ -56,7 +56,7 @@ main(void)
     }
     else{
       //child process
-      int pid = getpid();
+      //int pid = getpid();
       //printf(1, "child process - PID %d tickets: %d\n", pid, num_tickets(pid));
       for(int i = 0; i < LOOPS; i++){
       }
@@ -64,7 +64,7 @@ main(void)
     }
   } else {
     //parent process
-    int pid = getpid();
+    //int pid = getpid();
     //printf(1, "child process - PID %d tickets: %d\n", pid, num_tickets(pid));
     for(int i = 0; i < LOOPS; i++){
     }
