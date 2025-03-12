@@ -52,10 +52,13 @@ struct proc {
   int numticks;                // Process time
   //Only for stride scheduling
   #ifdef STRIDE
-  unsigned int numTickets;            // Process tickets
-  int stride;                // Process stride value
-  int passValue;             // Current total stride
-  #endif         
+    unsigned int numTickets;            // Process tickets
+    int stride;                // Process stride value
+    int passValue;             // Current total stride
+  //Only for lottery scheduling
+  #elif defined(LOTTERY)
+    unsigned int numTickets;            // Process tickets
+  #endif    
 };
 
 // Process memory is laid out contiguously, low addresses first:

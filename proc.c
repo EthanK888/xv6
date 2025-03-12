@@ -14,6 +14,10 @@
 #define TICKET_MAX 100
 #define TICKET_MIN 1
 
+//For lottery:
+#define STARTING_TICKETS 50
+unsigned int totalTickets = 0;
+
 struct {
   struct spinlock lock;
   struct proc proc[NPROC];
@@ -105,18 +109,19 @@ found:
     p->numTickets = get_random(TICKET_MIN, TICKET_MAX, seed);
     p->stride = STRIDE_CONSTANT/p->numTickets;  //Process stride value = Constant/numTickets
     
-    //Set starting passValue to minimum passValue of all current processes
-    //int temp;
-    
-    //Loop through all processing, getting min passValue
+    //Set starting passValue to minimum passValue of applicable current processes to prevent monopolizing
+    //Loop through all processes, getting min passValue
     int minPassValue = __INT_MAX__;
     for(struct proc *min = ptable.proc; min < &ptable.proc[NPROC]; min++){
-      if(min->state != RUNNABLE || min->state != RUNNING) continue;
+      if(min->state != RUNNABLE && min->state != RUNNING) continue;   //Only consider processes that are runnable or running
       if(min->passValue < minPassValue) minPassValue = min->passValue;
     }
 
     if(minPassValue == __INT_MAX__) minPassValue = 0;
     p->passValue = minPassValue;
+  #elif defined(LOTTERY)
+    p->numTickets = STARTING_TICKETS;
+    totalTickets += STARTING_TICKETS;
   #endif
 
   release(&ptable.lock);
@@ -444,6 +449,58 @@ void scheduler(void){
 
       release(&ptable.lock);
     }
+  #elif defined(LOTTERY)
+    //Lottery scheduler
+    for(;;){
+      sti();
+
+      acquire(&ptable.lock);
+      
+      unsigned int seed = ticks;
+      unsigned int winNum = get_random(0, totalTickets, seed);
+      unsigned int counter = 0;
+      struct proc *winner = 0;
+      for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+        if(p->state != RUNNABLE && p->state != RUNNING){
+          //cprintf("Non runnable states: %d %s %s\n", min->pid, min->name, min->state);
+          continue;
+        }
+        else{
+          counter += p->numTickets;
+          if(counter > winNum){
+            winner = p;
+            break;   //current process wins
+          }
+        }
+      }
+
+      if (!winner) {
+        release(&ptable.lock);
+        continue;
+      }
+
+      //if(min->state == RUNNABLE){
+        // Switch to chosen process.  It is the process's job
+        // to release ptable.lock and then reacquire it
+        // before jumping back to us.
+        c->proc = winner;
+        switchuvm(winner);
+        //this is where process starts
+        cprintf("I am scheduling: %d %d %s %d %d\n", winner->pid, winner->numticks, winner->name, winner->numTickets);
+        winner->state = RUNNING;
+        
+        
+
+        swtch(&(c->scheduler), winner->context);
+        switchkvm();
+
+        // Process is done running for now.
+        // It should have changed its p->state before coming back.
+        c->proc = 0;
+      //}
+
+      release(&ptable.lock);
+    }
   #endif
 
 }
@@ -709,8 +766,8 @@ unsigned int
 get_random(unsigned int min, unsigned int max, unsigned int seed)
 {
   seed = seed * 1664525 + 1013904223;
-  cprintf("Seed modified: %d\n", seed);
+  //cprintf("Seed modified: %d\n", seed);
   unsigned int tickets = min + (seed % (max - min));
-  cprintf("Tickets: %d Stride: %d\n", tickets, (10000/tickets));
-  return min + (seed % (max - min));
+  //cprintf("Tickets: %d Stride: %d\n", tickets, (10000/tickets));
+  return tickets;
 }
