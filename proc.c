@@ -775,15 +775,17 @@ get_random(unsigned int min, unsigned int max, unsigned int seed)
 int 
 set_tickets(int tickets)
 {
+  #ifdef LOTTERY
   struct proc *p = myproc();  //get the current process
   p->numTickets = tickets;   //set no of tickets for the current process
-
+  #endif
   return 0;
 }
 
 int
 get_tickets(int pid)
 {
+  #ifdef LOTTERY
   struct proc *p;
   
   acquire(&ptable.lock);
@@ -794,4 +796,7 @@ get_tickets(int pid)
     }
   }
   release(&ptable.lock);
+  #endif
+
+  return -1;
 }
