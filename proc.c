@@ -26,9 +26,8 @@ extern void forkret(void);
 extern void trapret(void);
 
 static void wakeup1(void *chan);
-unsigned long randstate = 1;
 unsigned int
-get_random(unsigned int min, unsigned int max);
+get_random(unsigned int min, unsigned int max, unsigned int seed);
 
 void
 pinit(void)
@@ -101,22 +100,23 @@ found:
   p->numticks = 0;
 
   #ifdef STRIDE
-    p->numTickets = get_random(TICKET_MIN, TICKET_MAX);
+    unsigned int seed = p->pid ^ ticks;
+    cprintf("PID: %d Seed: %d\n", p->pid, seed);
+    p->numTickets = get_random(TICKET_MIN, TICKET_MAX, seed);
     p->stride = STRIDE_CONSTANT/p->numTickets;  //Process stride value = Constant/numTickets
     
     //Set starting passValue to minimum passValue of all current processes
-    int temp;
+    //int temp;
     
     //Loop through all processing, getting min passValue
-    struct proc *t;
-    t = ptable.proc;
-    temp = t->passValue;
-    t++;
-    for(; t < &ptable.proc[NPROC]; t++){
-      if(t->passValue < temp) temp = t->passValue;
+    int minPassValue = __INT_MAX__;
+    for(struct proc *min = ptable.proc; min < &ptable.proc[NPROC]; min++){
+      if(min->state != RUNNABLE || min->state != RUNNING) continue;
+      if(min->passValue < minPassValue) minPassValue = min->passValue;
     }
 
-    p->passValue = temp;
+    if(minPassValue == __INT_MAX__) minPassValue = 0;
+    p->passValue = minPassValue;
   #endif
 
   release(&ptable.lock);
@@ -230,12 +230,12 @@ fork(void)
   np->parent = curproc;
   *np->tf = *curproc->tf;
 
-  #ifdef STRIDE
+  /*#ifdef STRIDE
   // Copy stride scheduler values
   np->numTickets = curproc->numTickets;
   np->stride = curproc->stride;
   np->passValue = curproc->passValue;
-  #endif
+  #endif*/
 
   // Clear %eax so that fork returns 0 in the child.
   np->tf->eax = 0;
@@ -706,8 +706,11 @@ num_tickets(int pid)
 }
 
 unsigned int
-get_random(unsigned int min, unsigned int max)
+get_random(unsigned int min, unsigned int max, unsigned int seed)
 {
-  randstate = (randstate * 1664525 + 1013904223) % (max-min+1);
-  return randstate + min;
+  seed = seed * 1664525 + 1013904223;
+  cprintf("Seed modified: %d\n", seed);
+  unsigned int tickets = min + (seed % (max - min));
+  cprintf("Tickets: %d Stride: %d\n", tickets, (10000/tickets));
+  return min + (seed % (max - min));
 }
