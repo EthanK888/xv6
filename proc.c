@@ -771,3 +771,27 @@ get_random(unsigned int min, unsigned int max, unsigned int seed)
   //cprintf("Tickets: %d Stride: %d\n", tickets, (10000/tickets));
   return tickets;
 }
+
+int 
+set_tickets(int tickets)
+{
+  struct proc *p = myproc();  //get the current process
+  p->numTickets = tickets;   //set no of tickets for the current process
+
+  return 0;
+}
+
+int
+get_tickets(int pid)
+{
+  struct proc *p;
+  
+  acquire(&ptable.lock);
+  for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+    if(p->pid == pid && (p->state == RUNNABLE || p->state == RUNNING)){
+      release(&ptable.lock);
+      return p->numTickets;
+    }
+  }
+  release(&ptable.lock);
+}

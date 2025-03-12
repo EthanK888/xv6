@@ -111,3 +111,24 @@ sys_num_tickets(void)
   return num_tickets(pid);
 }
 
+int
+sys_set_tickets(void)
+{
+    int tickets;
+
+    if (argint(0, &tickets) < 0)
+        return -1;
+
+    return set_tickets(tickets);
+}
+
+int
+sys_get_tickets(void)
+{
+  int pid;
+  
+  if (argint(0, &pid) < 0)
+        return -1;
+
+    return get_tickets(pid);
+}

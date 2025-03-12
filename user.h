@@ -25,7 +25,8 @@ int sleep(int);
 int uptime(void);
 int ticks_run(int);
 int num_tickets(int pid);
-
+int set_tickets(int);
+int get_tickets(int);
 
 
 // ulib.c
