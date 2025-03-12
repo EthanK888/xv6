@@ -2,7 +2,43 @@
 #include "stat.h"
 #include "user.h"
 
+#define LOOPS 10000
+
 int
+main(void)
+{
+  int pid;
+  pid = getpid();
+
+  pid = fork();
+  if(pid < 0) {
+    printf(1, "fork failed\n");
+  } else if(pid == 0) {
+    //child process
+    pid = fork();
+
+    if(pid < 0) {
+      printf(1, "fork failed\n");
+    } else if(pid == 0) {
+       char *arr[5]={};
+       exec("ls",arr);
+      exit();
+    }
+    else{
+      char *arr[5]={};
+      exec("ls",arr);
+      exit();
+    }
+  } else {
+    char *arr[5]={};
+    exec("ls",arr);
+    exit();
+  }
+  
+  exit();
+}
+
+/* int
 main(void)
 {
   int parent_pid = getpid();
@@ -61,4 +97,4 @@ main(void)
   
   printf(1, "Test complete.\n");
   exit();
-}
+} */
