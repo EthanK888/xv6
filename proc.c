@@ -16,7 +16,7 @@
 
 //For lottery:
 #define STARTING_TICKETS 50
-unsigned int totalTickets = 0;
+//unsigned int totalTickets = 0;
 
 struct {
   struct spinlock lock;
@@ -121,7 +121,7 @@ found:
     p->passValue = minPassValue;
   #elif defined(LOTTERY)
     p->numTickets = STARTING_TICKETS;
-    totalTickets += STARTING_TICKETS;
+    //totalTickets += STARTING_TICKETS;
   #endif
 
   release(&ptable.lock);
@@ -275,6 +275,12 @@ exit(void)
 
   if(curproc == initproc)
     panic("init exiting");
+
+  /*#ifdef LOTTERY
+    cprintf("Process exiting, total tickets before: %d\n", totalTickets);  
+    totalTickets -= curproc->numTickets;
+    cprintf("Process exiting, total tickets after: %d\n", totalTickets);
+  #endif*/
 
   // Close all open files.
   for(fd = 0; fd < NOFILE; fd++){
@@ -458,10 +464,24 @@ void scheduler(void){
 
       acquire(&ptable.lock);
       
+      int totalTickets = 0;
+      for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+        if(p->state == RUNNABLE || p->state == RUNNING) totalTickets += p->numTickets;
+      }
+      cprintf("totalTickets: %d\n", totalTickets);
+
+      if(totalTickets == 0){
+        release(&ptable.lock);
+        continue;
+      }
+
       unsigned int seed = ticks;
+      cprintf("Seed: %d\n", seed);
       unsigned int winNum = get_random(0, totalTickets, seed);
+      cprintf("Winner: %d\n", winNum);
       unsigned int counter = 0;
       struct proc *winner = 0;
+
       for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
         if(p->state != RUNNABLE && p->state != RUNNING){
           //cprintf("Non runnable states: %d %s %s\n", min->pid, min->name, min->state);
@@ -469,6 +489,7 @@ void scheduler(void){
         }
         else{
           counter += p->numTickets;
+          cprintf("Counter: %d\n", counter);
           if(counter > winNum){
             winner = p;
             break;   //current process wins
@@ -778,6 +799,7 @@ set_tickets(int tickets)
 {
   #ifdef LOTTERY
   struct proc *p = myproc();  //get the current process
+<<<<<<< HEAD
   if (p == 0 || (p->state != RUNNABLE && p->state != RUNNING))
     return -1;
 
@@ -785,6 +807,11 @@ set_tickets(int tickets)
     return -1;
 
   
+=======
+  /*cprintf("Changing numTickets, total tickets before: %d\n", totalTickets);
+  totalTickets -= (p->numTickets - tickets);
+  cprintf("Changing numTickets, total tickets after: %d\n", totalTickets);*/
+>>>>>>> 7bda902 (Lottery updates)
   p->numTickets = tickets;   //set no of tickets for the current process
  
   return 0;
