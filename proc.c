@@ -32,6 +32,7 @@ extern void trapret(void);
 
 static void wakeup1(void *chan);
 
+//Definition of get_random with the hardcoded seed
 unsigned long seed = 1;
 unsigned int
 get_random(unsigned int min, unsigned int max);
@@ -109,9 +110,8 @@ found:
   p->readytime = kernel_uptime();
   p->starttime = -1;
 
-  #ifdef STRIDE
-    //unsigned int seed = p->pid ^ ticks;
-    cprintf("PID: %d Seed: %d\n", p->pid, seed);
+  #ifdef STRIDE   //Set starting values for stride
+    //cprintf("PID: %d Seed: %d\n", p->pid, seed);
     p->numTickets = get_random(TICKET_MIN, TICKET_MAX);
     p->stride = STRIDE_CONSTANT/p->numTickets;  //Process stride value = Constant/numTickets
     
@@ -123,11 +123,12 @@ found:
       if(min->passValue < minPassValue) minPassValue = min->passValue;
     }
 
+    //If no applicable process found, start pass value at 0
     if(minPassValue == __INT_MAX__) minPassValue = 0;
+
     p->passValue = minPassValue;
-  #elif defined(LOTTERY)
+  #elif defined(LOTTERY)  //Set starting values for lottery
     p->numTickets = STARTING_TICKETS;
-    //totalTickets += STARTING_TICKETS;
   #endif
 
   release(&ptable.lock);
@@ -241,13 +242,6 @@ fork(void)
   np->parent = curproc;
   *np->tf = *curproc->tf;
 
-  /*#ifdef STRIDE
-  // Copy stride scheduler values
-  np->numTickets = curproc->numTickets;
-  np->stride = curproc->stride;
-  np->passValue = curproc->passValue;
-  #endif*/
-
   // Clear %eax so that fork returns 0 in the child.
   np->tf->eax = 0;
 
@@ -281,12 +275,6 @@ exit(void)
 
   if(curproc == initproc)
     panic("init exiting");
-
-  /*#ifdef LOTTERY
-    cprintf("Process exiting, total tickets before: %d\n", totalTickets);  
-    totalTickets -= curproc->numTickets;
-    cprintf("Process exiting, total tickets after: %d\n", totalTickets);
-  #endif*/
 
   // Close all open files.
   for(fd = 0; fd < NOFILE; fd++){
@@ -482,7 +470,7 @@ void scheduler(void){
         }
       }
 
-      //If no process with minimum pass value is found (meaning there's no runnable processes), keep looping until a process is found
+      //If no process with minimum pass value is found (meaning there's no runnable processes), keep looping until a process is runnable
       if (!min) {
         release(&ptable.lock);
         continue;
@@ -516,38 +504,42 @@ void scheduler(void){
 
       acquire(&ptable.lock);
       
+      //Loop through the process table to find the total number of tickets among all runnable processes
       int totalTickets = 0;
       for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
         if(p->state == RUNNABLE || p->state == RUNNING) totalTickets += p->numTickets;
       }
       //cprintf("totalTickets: %d\n", totalTickets);
 
-      if(totalTickets == 0){
+      //If no tickets found (so no processes are runnable), keep looping until a process is runnable
+      if(!totalTickets){
         release(&ptable.lock);
         continue;
       }
 
-      //unsigned int seed = ticks;
-      //cprintf("Seed: %d\n", seed);
+      //Get a random winner number
       unsigned int winNum = get_random(0, totalTickets);
-      cprintf("Winner: %d\n", winNum);
+      //cprintf("Winner: %d\n", winNum);
       unsigned int counter = 0;
       struct proc *winner = 0;
 
+      //Search through runnable processes for the winner
       for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
         if(p->state != RUNNABLE && p->state != RUNNING){
           continue;
         }
         else{
           counter += p->numTickets;
-          cprintf("Counter: %d\n", counter);
+          //cprintf("Counter: %d\n", counter);
+          //Once counter is greater than winner number, that process wins
           if(counter > winNum){
             winner = p;
-            break;   //current process wins
+            break;
           }
         }
       }
 
+      //If no processes are runnable, keep looping
       if (!winner) {
         release(&ptable.lock);
         continue;
@@ -559,7 +551,7 @@ void scheduler(void){
       c->proc = winner;
       switchuvm(winner);
       //this is where process starts
-      cprintf("I am scheduling: %d %d %s %d\n", winner->pid, winner->numticks, winner->name, winner->numTickets);
+      //cprintf("I am scheduling: %d %d %s %d\n", winner->pid, winner->numticks, winner->name, winner->numTickets);
       winner->state = RUNNING;
       
       
@@ -574,48 +566,7 @@ void scheduler(void){
       release(&ptable.lock);
     }
   #endif
-
 }
-
-/*
-void
-scheduler(void)
-{
-  struct proc *p;
-  struct cpu *c = mycpu();
-  c->proc = 0;
-  
-  for(;;){
-    // Enable interrupts on this processor.
-    sti();
-
-    // Loop over process table looking for process to run.
-    acquire(&ptable.lock);
-    for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
-      if(p->state != RUNNABLE)
-        continue;
-
-      // Switch to chosen process.  It is the process's job
-      // to release ptable.lock and then reacquire it
-      // before jumping back to us.
-      c->proc = p;
-      switchuvm(p);
-      //this is where process starts
-      p->state = RUNNING;
-      
-      swtch(&(c->scheduler), p->context);
-      switchkvm();
-
-      // Process is done running for now.
-      // It should have changed its p->state before coming back.
-      c->proc = 0;
-      //this is where 
-    }
-    release(&ptable.lock);
-
-  }
-}
-*/
 
 // Enter scheduler.  Must hold only ptable.lock
 // and have changed proc->state. Saves and restores
@@ -758,25 +709,6 @@ kill(int pid)
   return -1;
 }
 
-//return numticks for the given pid.
-int
-ticks_run(int pid)
-{
-  struct proc *p;
-  int ticks;
-
-  acquire(&ptable.lock);
-  for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
-    if(p->pid == pid){
-      ticks = p->numticks;
-      release(&ptable.lock);
-      return ticks;
-    }
-  }
-  release(&ptable.lock);
-  return -1;
-}
-
 //PAGEBREAK: 36
 // Print a process listing to console.  For debugging.
 // Runs when user types ^P on console.
@@ -816,23 +748,82 @@ procdump(void)
 
 // Implementation of num_tickets system call
 int
-num_tickets(int pid)
+ticks_run(int pid)
 {
-#ifdef STRIDE
   struct proc *p;
-  
+  int ticks;
+
   acquire(&ptable.lock);
   for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
-    if(p->pid == pid && (p->state == RUNNABLE || p->state == RUNNING)){
+    if(p->pid == pid){
+      ticks = p->numticks;
       release(&ptable.lock);
-      return p->numTickets;
+      return ticks;
     }
   }
   release(&ptable.lock);
-#endif
+  return -1;
+}
+
+// Implementation of num_tickets system call for stride scheduler
+int
+num_tickets(int pid)
+{
+  #ifdef STRIDE
+    struct proc *p;
+    
+    acquire(&ptable.lock);
+    for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+      if(p->pid == pid && (p->state == RUNNABLE || p->state == RUNNING)){
+        release(&ptable.lock);
+        return p->numTickets;
+      }
+    }
+    release(&ptable.lock);
+  #endif
+
   return -1; 
 }
 
+//Set tickets syscall for lottery scheduler
+int 
+set_tickets(int tickets)
+{
+  #ifdef LOTTERY
+    struct proc *p = myproc();  //get the current process
+    if (p == 0 || (p->state != RUNNABLE && p->state != RUNNING))
+      return -1;
+
+    if (tickets <= 1)
+      return -1;
+    
+    p->numTickets = tickets;   //set no of tickets for the current process
+  #endif
+
+  return 0;
+}
+
+//Get tickets syscall for lottery scheduler
+int
+get_tickets(int pid)
+{
+  #ifdef LOTTERY
+    struct proc *p;
+    
+    acquire(&ptable.lock);
+    for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+      if(p->pid == pid && (p->state == RUNNABLE || p->state == RUNNING)){
+        release(&ptable.lock);
+        return p->numTickets;
+      }
+    }
+    release(&ptable.lock);
+  #endif
+
+  return -1;
+}
+
+//Returns a PRN between min (inclusive) and max (exclusive) based on a hardcoded seed found at the top of proc.c
 unsigned int
 get_random(unsigned int min, unsigned int max)
 {
