@@ -19,6 +19,8 @@ int main(){
     no_tickets = num_tickets(9999);
     printf(1, "non existent process tickets: %d\n", no_tickets);
   #elif defined(LOTTERY)
+    int no_tickets;
+
     //Initial process tickets
     printf(1, "current process- PID %d tickets: %d\n", mypid, get_tickets(mypid));
 
