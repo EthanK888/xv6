@@ -8,10 +8,10 @@ void catreadmeuniq();
 
 int main(){
   int mypid;
-  int no_tickets;
   mypid = getpid();
   
   #ifdef STRIDE
+    int no_tickets;
     //Initial process tickets
     printf(1, "current process- PID %d tickets: %d\n", mypid, num_tickets(mypid));
 
