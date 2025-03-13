@@ -195,7 +195,7 @@ UPROGS=\
 	_zombie\
 	_uniq\
 	_ticks_run_test\
-	_stridetest\
+	_schedulertest\
 	_tickets_test\
 
 fs.img: mkfs README txtfile $(UPROGS)

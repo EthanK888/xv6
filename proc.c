@@ -5,6 +5,7 @@
 #include "mmu.h"
 #include "x86.h"
 #include "proc.h"
+#include "procinfo.h"
 #include "spinlock.h"
 
 
@@ -34,6 +35,7 @@ static void wakeup1(void *chan);
 unsigned long seed = 1;
 unsigned int
 get_random(unsigned int min, unsigned int max);
+int kernel_uptime(void);
 
 void
 pinit(void)
@@ -104,6 +106,8 @@ found:
   p->state = EMBRYO;
   p->pid = nextpid++;
   p->numticks = 0;
+  p->readytime = kernel_uptime();
+  p->starttime = -1;
 
   #ifdef STRIDE
     //unsigned int seed = p->pid ^ ticks;
@@ -312,6 +316,7 @@ exit(void)
   }
 
   // Jump into the scheduler, never to return.
+  curproc->exittime = kernel_uptime();
   curproc->state = ZOMBIE;
   sched();
   panic("zombie exit");
@@ -336,6 +341,55 @@ wait(void)
       havekids = 1;
       if(p->state == ZOMBIE){
         // Found one.
+        pid = p->pid;
+        kfree(p->kstack);
+        p->kstack = 0;
+        freevm(p->pgdir);
+        p->pid = 0;
+        p->parent = 0;
+        p->name[0] = 0;
+        p->killed = 0;
+        p->state = UNUSED;
+        release(&ptable.lock);
+        return pid;
+      }
+    }
+
+    // No point waiting if we don't have any children.
+    if(!havekids || curproc->killed){
+      release(&ptable.lock);
+      return -1;
+    }
+
+    // Wait for children to exit.  (See wakeup1 call in proc_exit.)
+    sleep(curproc, &ptable.lock);  //DOC: wait-sleep
+  }
+}
+
+// new version of wait for metrics collection
+int
+waitinfo(struct procinfo *info)
+{
+  struct proc *p;
+  int havekids, pid;
+  struct proc *curproc = myproc();
+  
+  acquire(&ptable.lock);
+  for(;;){
+    // Scan through table looking for exited children.
+    havekids = 0;
+    for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+      if(p->parent != curproc)
+        continue;
+      havekids = 1;
+      if(p->state == ZOMBIE){
+        // Found one.
+        //if returning metrics
+        info->pid = p->pid;
+        info->numticks = p->numticks;
+        info->readytime = p->readytime;
+        info->exittime = p->exittime;
+        info->starttime = p->starttime;
         pid = p->pid;
         kfree(p->kstack);
         p->kstack = 0;
@@ -394,6 +448,7 @@ void scheduler(void){
         switchuvm(p);
         //this is where process starts
         //cprintf("I am scheduling: %d %d %s\n", p->pid, p->numticks, p->name);
+        if (p->starttime == -1)  p->starttime = kernel_uptime();
         p->state = RUNNING;
         
         swtch(&(c->scheduler), p->context);
@@ -440,6 +495,7 @@ void scheduler(void){
       switchuvm(min);
       //this is where process starts
       //cprintf("I am scheduling: %d %d %s %d %d\n", min->pid, min->numticks, min->name, min->stride, min->passValue);
+      if (min->starttime == -1)  min->starttime = kernel_uptime();
       min->state = RUNNING;
       
       
@@ -758,7 +814,6 @@ procdump(void)
   }
 }
 
-
 // Implementation of num_tickets system call
 int
 num_tickets(int pid)
@@ -817,5 +872,17 @@ get_tickets(int pid)
   release(&ptable.lock);
   #endif
 
+
   return -1;
+}
+
+//for checking uptime in the kernel, helper function
+int kernel_uptime(void)
+{
+  uint xticks;
+
+  acquire(&tickslock);
+  xticks = ticks;
+  release(&tickslock);
+  return xticks;
 }

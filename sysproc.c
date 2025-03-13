@@ -6,6 +6,7 @@
 #include "memlayout.h"
 #include "mmu.h"
 #include "proc.h"
+#include "procinfo.h"
 
 int
 sys_fork(void)
@@ -24,6 +25,15 @@ int
 sys_wait(void)
 {
   return wait();
+}
+
+int sys_waitinfo(void) {
+  struct procinfo *pinfo;
+
+  if (argptr(0, (void*)&pinfo, sizeof(*pinfo)) < 0)
+      return -1;
+
+  return waitinfo(pinfo);
 }
 
 int

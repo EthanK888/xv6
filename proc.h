@@ -50,6 +50,9 @@ struct proc {
   struct inode *cwd;           // Current directory
   char name[16];               // Process name (debugging)
   int numticks;                // Process time
+  int readytime;               // for metrics
+  int starttime;                 // for metrics
+  int exittime;                // for metrics
   //Only for stride scheduling
   #ifdef STRIDE
     unsigned int numTickets;            // Process tickets
