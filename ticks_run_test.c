@@ -2,7 +2,7 @@
 #include "stat.h"
 #include "user.h"
 
-#define LOOPS 500000000
+#define LOOPS 3000000000
 
 /*int main(void) {
     int pid = getpid();  //get current process ID
@@ -26,18 +26,19 @@
 int
 main(void)
 {
-  int pid, no_ticks;
+  int pid;
+  //int no_ticks;
   pid = getpid();
-  printf(1, "current process- PID %d ticks: %d\n", pid, ticks_run(pid));
+  //printf(1, "current process- PID %d ticks: %d\n", pid, ticks_run(pid));
   
   
-  printf(1, "after computation ticks: %d\n", ticks_run(pid));
+  //printf(1, "after computation ticks: %d\n", ticks_run(pid));
   
   //process does not exist
-  no_ticks = ticks_run(9999);
-  printf(1, "non existent process ticks: %d\n", no_ticks);
-  for(int i = 0; i < LOOPS; i++){
-  }
+  //no_ticks = ticks_run(9999);
+  //printf(1, "non existent process ticks: %d\n", no_ticks);
+  /*for(int i = 0; i < LOOPS; i++){
+  }*/
   pid = fork();
   if(pid < 0) {
     printf(1, "fork failed\n");
