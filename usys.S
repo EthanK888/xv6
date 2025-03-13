@@ -11,6 +11,7 @@
 SYSCALL(fork)
 SYSCALL(exit)
 SYSCALL(wait)
+SYSCALL(waitinfo)
 SYSCALL(pipe)
 SYSCALL(read)
 SYSCALL(write)
