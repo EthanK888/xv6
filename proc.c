@@ -489,7 +489,8 @@ void scheduler(void){
         c->proc = min;
         switchuvm(min);
         //this is where process starts
-        cprintf("I am scheduling: %d %d %s %d %d\n", min->pid, min->numticks, min->name, min->stride, min->passValue);
+       // cprintf("I am scheduling: %d %d %s %d %d\n", min->pid, min->numticks, min->name, min->stride, min->passValue);
+        if (min->starttime == -1)  min->starttime = kernel_uptime();
         min->state = RUNNING;
         
         
