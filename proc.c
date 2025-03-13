@@ -834,39 +834,6 @@ get_random(unsigned int min, unsigned int max)
   return tickets;
 }
 
-int 
-set_tickets(int tickets)
-{
-  #ifdef LOTTERY
-  struct proc *p = myproc();  //get the current process
-  /*cprintf("Changing numTickets, total tickets before: %d\n", totalTickets);
-  totalTickets -= (p->numTickets - tickets);
-  cprintf("Changing numTickets, total tickets after: %d\n", totalTickets);*/
-  p->numTickets = tickets;   //set no of tickets for the current process
-  #endif
-  return 0;
-}
-
-int
-get_tickets(int pid)
-{
-  #ifdef LOTTERY
-  struct proc *p;
-  
-  acquire(&ptable.lock);
-  for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
-    if(p->pid == pid && (p->state == RUNNABLE || p->state == RUNNING)){
-      release(&ptable.lock);
-      return p->numTickets;
-    }
-  }
-  release(&ptable.lock);
-  #endif
-
-
-  return -1;
-}
-
 //for checking uptime in the kernel, helper function
 int kernel_uptime(void)
 {
