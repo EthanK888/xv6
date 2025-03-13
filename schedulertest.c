@@ -2,8 +2,6 @@
 #include "stat.h"
 #include "user.h"
 
-#define LOOPS 10000
-
 int main(void)
 {
     int pid;
