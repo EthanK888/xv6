@@ -94,8 +94,8 @@ int main(void)
         }
     }
 
-    int avgturnaround = turnaround / LOOPS;
-    int avgresponse = response / LOOPS;
+    float avgturnaround = (float) turnaround / LOOPS;
+    float avgresponse = (float) response / LOOPS;
 
     printf(1, "average turnaround time: %d\n", avgturnaround);
     printf(1, "average response time: %d\n", avgresponse);
