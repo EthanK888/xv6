@@ -53,8 +53,8 @@ struct proc {
   //Only for stride scheduling
   #ifdef STRIDE
     unsigned int numTickets;            // Process tickets
-    int stride;                // Process stride value
-    int passValue;             // Current total stride
+    int stride;                         // Process stride value
+    int passValue;                      // Current total stride
   //Only for lottery scheduling
   #elif defined(LOTTERY)
     unsigned int numTickets;            // Process tickets
