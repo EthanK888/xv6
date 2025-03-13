@@ -552,6 +552,7 @@ void scheduler(void){
       switchuvm(winner);
       //this is where process starts
       //cprintf("I am scheduling: %d %d %s %d\n", winner->pid, winner->numticks, winner->name, winner->numTickets);
+      if (winner->starttime == -1)  winner->starttime = kernel_uptime();
       winner->state = RUNNING;
       
       
