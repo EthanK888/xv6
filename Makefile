@@ -198,6 +198,8 @@ UPROGS=\
 	_schedulertest\
 	_tickets_test\
 	_test_lottery\
+	_cpu_load_test\
+	_basic_scheduler_tests\
 
 fs.img: mkfs README txtfile $(UPROGS)
 	./mkfs fs.img README txtfile $(UPROGS)

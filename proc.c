@@ -801,7 +801,7 @@ set_tickets(int tickets)
     p->numTickets = tickets;   //set no of tickets for the current process
   #endif
 
-  return 0;
+  return -1;
 }
 
 //Get tickets syscall for lottery scheduler
