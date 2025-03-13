@@ -799,7 +799,6 @@ set_tickets(int tickets)
 {
   #ifdef LOTTERY
   struct proc *p = myproc();  //get the current process
-<<<<<<< HEAD
   if (p == 0 || (p->state != RUNNABLE && p->state != RUNNING))
     return -1;
 
@@ -807,11 +806,14 @@ set_tickets(int tickets)
     return -1;
 
   
+<<<<<<< HEAD
 =======
   /*cprintf("Changing numTickets, total tickets before: %d\n", totalTickets);
   totalTickets -= (p->numTickets - tickets);
   cprintf("Changing numTickets, total tickets after: %d\n", totalTickets);*/
 >>>>>>> 7bda902 (Lottery updates)
+=======
+>>>>>>> 1e5de51 (merging main)
   p->numTickets = tickets;   //set no of tickets for the current process
  
   return 0;
