@@ -449,8 +449,10 @@ void scheduler(void){
 
       release(&ptable.lock);
     }
+    
   #elif defined(LOTTERY)
     //Lottery scheduler
+    
     for(;;){
       sti();
 
@@ -486,7 +488,7 @@ void scheduler(void){
         c->proc = winner;
         switchuvm(winner);
         //this is where process starts
-        cprintf("I am scheduling: %d %d %s %d %d\n", winner->pid, winner->numticks, winner->name, winner->numTickets);
+        cprintf("I am scheduling: %d %d %s %d\n", winner->pid, winner->numticks, winner->name, winner->numTickets);
         winner->state = RUNNING;
         
         
@@ -504,7 +506,6 @@ void scheduler(void){
   #endif
 
 }
-
 /*
 void
 scheduler(void)
@@ -777,9 +778,17 @@ set_tickets(int tickets)
 {
   #ifdef LOTTERY
   struct proc *p = myproc();  //get the current process
+  if (p == 0 || (p->state != RUNNABLE && p->state != RUNNING))
+    return -1;
+
+  if (tickets <= 1)
+    return -1;
+
+  
   p->numTickets = tickets;   //set no of tickets for the current process
-  #endif
+ 
   return 0;
+  #endif
 }
 
 int
@@ -796,7 +805,8 @@ get_tickets(int pid)
     }
   }
   release(&ptable.lock);
+  return -1;
   #endif
 
-  return -1;
+  
 }
