@@ -197,6 +197,7 @@ UPROGS=\
 	_ticks_run_test\
 	_stridetest\
 	_tickets_test\
+	_test_lottery\
 
 fs.img: mkfs README txtfile $(UPROGS)
 	./mkfs fs.img README txtfile $(UPROGS)

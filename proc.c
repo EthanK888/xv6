@@ -420,23 +420,23 @@ void scheduler(void){
         continue;
       }
 
-      // Switch to chosen process.  It is the process's job
-      // to release ptable.lock and then reacquire it
-      // before jumping back to us.
-      c->proc = min;
-      switchuvm(min);
-      //this is where process starts
+        // Switch to chosen process.  It is the process's job
+        // to release ptable.lock and then reacquire it
+        // before jumping back to us.
+        c->proc = min;
+        switchuvm(min);
+        //this is where process starts
       //cprintf("I am scheduling: %d %d %s %d %d\n", min->pid, min->numticks, min->name, min->stride, min->passValue);
-      min->state = RUNNING;
-      
-      
+        min->state = RUNNING;
+        
+        
 
-      swtch(&(c->scheduler), min->context);
-      switchkvm();
+        swtch(&(c->scheduler), min->context);
+        switchkvm();
 
-      // Process is done running for now.
-      // It should have changed its p->state before coming back.
-      c->proc = 0;
+        // Process is done running for now.
+        // It should have changed its p->state before coming back.
+        c->proc = 0;
 
       release(&ptable.lock);
     }
@@ -488,23 +488,23 @@ void scheduler(void){
         continue;
       }
 
-      // Switch to chosen process.  It is the process's job
-      // to release ptable.lock and then reacquire it
-      // before jumping back to us.
-      c->proc = winner;
-      switchuvm(winner);
-      //this is where process starts
-      cprintf("I am scheduling: %d %d %s %d\n", winner->pid, winner->numticks, winner->name, winner->numTickets);
-      winner->state = RUNNING;
-      
-      
+        // Switch to chosen process.  It is the process's job
+        // to release ptable.lock and then reacquire it
+        // before jumping back to us.
+        c->proc = winner;
+        switchuvm(winner);
+        //this is where process starts
+        cprintf("I am scheduling: %d %d %s %d\n", winner->pid, winner->numticks, winner->name, winner->numTickets);
+        winner->state = RUNNING;
+        
+        
 
-      swtch(&(c->scheduler), winner->context);
-      switchkvm();
+        swtch(&(c->scheduler), winner->context);
+        switchkvm();
 
-      // Process is done running for now.
-      // It should have changed its p->state before coming back.
-      c->proc = 0;
+        // Process is done running for now.
+        // It should have changed its p->state before coming back.
+        c->proc = 0;
 
       release(&ptable.lock);
     }
@@ -736,6 +736,12 @@ set_tickets(int tickets)
 {
   #ifdef LOTTERY
     struct proc *p = myproc();  //get the current process
+    if (p == 0 || (p->state != RUNNABLE && p->state != RUNNING))
+      return -1;
+
+    if (tickets <= 1)
+      return -1;
+    
     p->numTickets = tickets;   //set no of tickets for the current process
   #endif
 
