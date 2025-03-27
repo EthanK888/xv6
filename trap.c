@@ -32,6 +32,31 @@ idtinit(void)
   lidt(idt, sizeof(idt));
 }
 
+// Create PTEs for virtual addresses starting at va that refer to
+// physical addresses starting at pa. va and size might not
+// be page-aligned.
+static int
+mappages(pde_t *pgdir, void *va, uint size, uint pa, int perm)
+{
+  char *a, *last;
+  pte_t *pte;
+
+  a = (char*)PGROUNDDOWN((uint)va);
+  last = (char*)PGROUNDDOWN(((uint)va) + size - 1);
+  for(;;){
+    if((pte = walkpgdir(pgdir, a, 1)) == 0)
+      return -1;
+    if(*pte & PTE_P)
+      panic("remap");
+    *pte = pa | perm | PTE_P;
+    if(a == last)
+      break;
+    a += PGSIZE;
+    pa += PGSIZE;
+  }
+  return 0;
+}
+
 //PAGEBREAK: 41
 void
 trap(struct trapframe *tf)
@@ -60,6 +85,15 @@ trap(struct trapframe *tf)
   //}
     
     lapiceoi();
+    break;
+  case T_PGFLT:
+    uint a = rcr2();
+
+    if (mappages(pgdir, (char *)a, PGSIZE, V2P(a), PTE_W | PTE_U) < 0)
+    {
+      cprintf("error mapping pages\n");
+      return 0;
+    }
     break;
   case T_IRQ0 + IRQ_IDE:
     ideintr();
