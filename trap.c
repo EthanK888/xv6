@@ -88,8 +88,13 @@ trap(struct trapframe *tf)
     break;
   case T_PGFLT:
     uint a = rcr2();
-
-    if (mappages(pgdir, (char *)a, PGSIZE, V2P(a), PTE_W | PTE_U) < 0)
+    char * mem = kalloc();
+    if(mem == 0){
+      cprintf("out of memory\n");
+      return 0;
+    }
+    memset(mem, 0, PGSIZE);
+    if (mappages(myproc()->pgdir, (char *)a, PGSIZE, V2P(mem), PTE_W | PTE_U) < 0)
     {
       cprintf("error mapping pages\n");
       return 0;
