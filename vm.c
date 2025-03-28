@@ -268,8 +268,10 @@ deallocuvm(pde_t *pgdir, uint oldsz, uint newsz)
       a = PGADDR(PDX(a) + 1, 0, 0) - PGSIZE;
     else if((*pte & PTE_P) != 0){
       pa = PTE_ADDR(*pte);
-      if(pa == 0)
+      if(pa == 0){
+        cprintf("deallocuvm\n");
         panic("kfree");
+      }
       char *v = P2V(pa);
       kfree(v);
       *pte = 0;
