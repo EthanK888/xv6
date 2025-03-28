@@ -32,6 +32,31 @@ idtinit(void)
   lidt(idt, sizeof(idt));
 }
 
+// Return the address of the PTE in page table pgdir
+// that corresponds to virtual address va.  If alloc!=0,
+// create any required page table pages.
+static pte_t *
+walkpgdir(pde_t *pgdir, const void *va, int alloc)
+{
+  pde_t *pde;
+  pte_t *pgtab;
+
+  pde = &pgdir[PDX(va)];
+  if(*pde & PTE_P){
+    pgtab = (pte_t*)P2V(PTE_ADDR(*pde));
+  } else {
+    if(!alloc || (pgtab = (pte_t*)kalloc()) == 0)
+      return 0;
+    // Make sure all those PTE_P bits are zero.
+    memset(pgtab, 0, PGSIZE);
+    // The permissions here are overly generous, but they can
+    // be further restricted by the permissions in the page table
+    // entries, if necessary.
+    *pde = V2P(pgtab) | PTE_P | PTE_W | PTE_U;
+  }
+  return &pgtab[PTX(va)];
+}
+
 // Create PTEs for virtual addresses starting at va that refer to
 // physical addresses starting at pa. va and size might not
 // be page-aligned.
@@ -91,15 +116,15 @@ trap(struct trapframe *tf)
     char * mem = kalloc();
     if(mem == 0){
       cprintf("out of memory\n");
-      return 0;
-    }
-    memset(mem, 0, PGSIZE);
-    if (mappages(myproc()->pgdir, (char *)a, PGSIZE, V2P(mem), PTE_W | PTE_U) < 0)
-    {
+    } else {
+      memset(mem, 0, PGSIZE);
+      if (mappages(myproc()->pgdir, (char *)a, PGSIZE, V2P(mem), PTE_W | PTE_U) > -1)
+      {
+        break;
+      }
       cprintf("error mapping pages\n");
-      return 0;
+      kfree(mem);
     }
-    break;
   case T_IRQ0 + IRQ_IDE:
     ideintr();
     lapiceoi();
