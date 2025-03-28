@@ -113,6 +113,7 @@ trap(struct trapframe *tf)
     break;
   case T_PGFLT:
     uint a = rcr2();
+    a = PGROUNDDOWN(a);
     char * mem = kalloc();
     if(mem == 0){
       cprintf("out of memory\n");
