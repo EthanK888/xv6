@@ -79,7 +79,7 @@ runcmd(struct cmd *cmd)
     else if(strcmp(ecmd->argv[0], "ls") == 0 || strcmp(ecmd->argv[0], "cat") == 0 || strcmp(ecmd->argv[0], "echo") == 0 
             || strcmp(ecmd->argv[0], "grep") == 0 || strcmp(ecmd->argv[0], "kill") == 0 || strcmp(ecmd->argv[0], "ln") == 0 
             || strcmp(ecmd->argv[0], "mkdir") == 0 || strcmp(ecmd->argv[0], "rm") == 0 || strcmp(ecmd->argv[0], "sleep") == 0 
-            || strcmp(ecmd->argv[0], "wc") == 0 || strcmp(ecmd->argv[0], "uniq") == 0){
+            || strcmp(ecmd->argv[0], "wc") == 0 || strcmp(ecmd->argv[0], "uniq") == 0 || strcmp(ecmd->argv[0], "find") == 0){
               char* path = malloc(sizeof(ecmd->argv[0] + 1));
               path[0] = '/';
               strcpy(path + 1, ecmd->argv[0]);

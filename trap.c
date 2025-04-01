@@ -114,18 +114,41 @@ trap(struct trapframe *tf)
   case T_PGFLT:{
     uint a = rcr2();
     a = PGROUNDDOWN(a);
-    char * mem = kalloc();
-    if(mem == 0){
-      cprintf("out of memory\n");
-    } else {
-      memset(mem, 0, PGSIZE);
-      if (mappages(myproc()->pgdir, (char *)a, PGSIZE, V2P(mem), PTE_W | PTE_U) > -1)
-      {
-        break;
+  
+    #ifdef LAZY
+      char * mem = kalloc();
+      if(mem == 0){
+        cprintf("out of memory\n");
+      } else {
+        memset(mem, 0, PGSIZE);
+        if (mappages(myproc()->pgdir, (char *)a, PGSIZE, V2P(mem), PTE_W | PTE_U) > -1)
+        {
+          break;
+        }
+        cprintf("error mapping pages\n");
+        kfree(mem);
       }
-      cprintf("error mapping pages\n");
-      kfree(mem);
-    }}
+    #elif defined(LOCALITY)
+      int error = 0;
+      for(int i = 0; i < 5; i++, a += PGSIZE){ 
+        char * mem = kalloc();
+        if(mem == 0){
+          cprintf("out of memory\n");
+        } else {
+          memset(mem, 0, PGSIZE);
+          if (mappages(myproc()->pgdir, (char *)a, PGSIZE, V2P(mem), PTE_W | PTE_U) < 0)
+          {
+            cprintf("error mapping pages\n");
+            kfree(mem);
+            error = 1;
+            break;
+          }
+        }
+      }
+
+      if(!error) break;
+    #endif
+  }
   case T_IRQ0 + IRQ_IDE:
     ideintr();
     lapiceoi();
