@@ -111,7 +111,7 @@ trap(struct trapframe *tf)
     
     lapiceoi();
     break;
-  case T_PGFLT:
+  case T_PGFLT:{
     uint a = rcr2();
     a = PGROUNDDOWN(a);
     char * mem = kalloc();
@@ -125,7 +125,7 @@ trap(struct trapframe *tf)
       }
       cprintf("error mapping pages\n");
       kfree(mem);
-    }
+    }}
   case T_IRQ0 + IRQ_IDE:
     ideintr();
     lapiceoi();
