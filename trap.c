@@ -135,10 +135,15 @@ trap(struct trapframe *tf)
       }
     #elif defined(LOCALITY)
       int error = 0;
+      uint allocatedPages[5] = {0};
+      int numPagesAllocated = 0;
+
       for(int i = 0; i < 5; i++, a += PGSIZE){ 
         char * mem = kalloc();
         if(mem == 0){
           cprintf("out of memory\n");
+          error = 1;
+          break;
         } else {
           memset(mem, 0, PGSIZE);
           if (mappages(myproc()->pgdir, (char *)a, PGSIZE, V2P(mem), PTE_W | PTE_U) < 0)
@@ -148,12 +153,19 @@ trap(struct trapframe *tf)
             error = 1;
             break;
           } else {
+            allocatedPages[numPagesAllocated] = a;
+            numPagesAllocated++;
             cprintf("page table entry added to cover all virtual addresses from 0x%x to 0x%x\n", a, a+PGSIZE-1);
           }
         }
       }
 
-      if(!error) break;
+      if(error){
+        for(int i = 0; numPagesAllocated; i++){
+          deallocuvm(myproc()->pgdir, allocatedPages[i] + PGSIZE, allocatedPages[i]);
+        }
+      }
+      else break;
     #endif
   }
   case T_IRQ0 + IRQ_IDE:
