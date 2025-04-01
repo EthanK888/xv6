@@ -75,6 +75,16 @@ runcmd(struct cmd *cmd)
     ecmd = (struct execcmd*)cmd;
     if(ecmd->argv[0] == 0)
       exit();
+    //For project 3: Allow commands to be executed in other directories by checking the root folder for commands
+    else if(strcmp(ecmd->argv[0], "ls") == 0 || strcmp(ecmd->argv[0], "cat") == 0 || strcmp(ecmd->argv[0], "echo") == 0 
+            || strcmp(ecmd->argv[0], "grep") == 0 || strcmp(ecmd->argv[0], "kill") == 0 || strcmp(ecmd->argv[0], "ln") == 0 
+            || strcmp(ecmd->argv[0], "mkdir") == 0 || strcmp(ecmd->argv[0], "rm") == 0 || strcmp(ecmd->argv[0], "sleep") == 0 
+            || strcmp(ecmd->argv[0], "wc") == 0 || strcmp(ecmd->argv[0], "uniq") == 0){
+              char* path = malloc(sizeof(ecmd->argv[0] + 1));
+              path[0] = '/';
+              strcpy(path + 1, ecmd->argv[0]);
+              ecmd->argv[0] = path; 
+    }
     exec(ecmd->argv[0], ecmd->argv);
     printf(2, "exec %s failed\n", ecmd->argv[0]);
     break;
