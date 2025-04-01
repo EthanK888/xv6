@@ -53,6 +53,7 @@ struct proc {
   int readytime;               // for metrics
   int starttime;                 // for metrics
   int exittime;                // for metrics
+  int pagefaults;              //for proj3
   //Only for stride scheduling
   #ifdef STRIDE
     unsigned int numTickets;            // Process tickets

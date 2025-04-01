@@ -107,6 +107,7 @@ found:
   p->state = EMBRYO;
   p->pid = nextpid++;
   p->numticks = 0;
+  p->pagefaults = 0;
   p->readytime = kernel_uptime();
   p->starttime = -1;
 

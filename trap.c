@@ -112,8 +112,12 @@ trap(struct trapframe *tf)
     lapiceoi();
     break;
   case T_PGFLT:{
+    myproc()->pagefaults++;
     uint a = rcr2();
+    cprintf("PAGE FAULT %d FOR PROCESS %d\n", myproc()->pagefaults, myproc()->pid);
+    cprintf("memory address causing the page fault: 0x%x\n", a);
     a = PGROUNDDOWN(a);
+    cprintf("START OF PAGE FOR THIS MEMORY ACCESS: 0x%x", a);
   
     #ifdef LAZY
       char * mem = kalloc();
@@ -123,6 +127,7 @@ trap(struct trapframe *tf)
         memset(mem, 0, PGSIZE);
         if (mappages(myproc()->pgdir, (char *)a, PGSIZE, V2P(mem), PTE_W | PTE_U) > -1)
         {
+          cprintf("page table entry added to cover all virtual addresses from 0x%x to 0x%x\n", a, a+PGSIZE-1);
           break;
         }
         cprintf("error mapping pages\n");
@@ -142,6 +147,8 @@ trap(struct trapframe *tf)
             kfree(mem);
             error = 1;
             break;
+          } else {
+            cprintf("page table entry added to cover all virtual addresses from 0x%x to 0x%x\n", a, a+PGSIZE-1);
           }
         }
       }
