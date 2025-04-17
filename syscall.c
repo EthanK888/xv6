@@ -108,6 +108,7 @@ extern int sys_ticks_run(void);
 extern int sys_num_tickets(void);
 extern int sys_set_tickets(void);
 extern int sys_get_tickets(void);
+extern int sys_lseek(void);
 
 static int (*syscalls[])(void) = {
 [SYS_fork]    sys_fork,
@@ -136,6 +137,7 @@ static int (*syscalls[])(void) = {
 [SYS_num_tickets]  sys_num_tickets,
 [SYS_set_tickets]  sys_set_tickets,
 [SYS_get_tickets]  sys_get_tickets,
+[SYS_lseek] sys_lseek,
 };
 
 void

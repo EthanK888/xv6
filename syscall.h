@@ -25,3 +25,4 @@
 #define SYS_set_tickets 24
 #define SYS_get_tickets 25
 #define SYS_waitinfo  26
+#define SYS_lseek 27
