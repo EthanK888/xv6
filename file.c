@@ -155,3 +155,9 @@ filewrite(struct file *f, char *addr, int n)
   panic("filewrite");
 }
 
+//Project 4
+
+void lseek(struct file* f, uint off){
+  f->off += off;
+  return;
+}
