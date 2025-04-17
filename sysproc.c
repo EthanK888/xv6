@@ -7,6 +7,7 @@
 #include "mmu.h"
 #include "proc.h"
 #include "procinfo.h"
+#include "file.h"
 
 int
 sys_fork(void)
@@ -128,7 +129,7 @@ sys_set_tickets(void)
     int tickets;
 
     if (argint(0, &tickets) < 0)
-        return -1;
+      return -1;
 
     return set_tickets(tickets);
 }
@@ -139,7 +140,7 @@ sys_get_tickets(void)
   int pid;
   
   if (argint(0, &pid) < 0)
-        return -1;
+    return -1;
 
-    return get_tickets(pid);
+  return get_tickets(pid);
 }

@@ -442,3 +442,14 @@ sys_pipe(void)
   fd[1] = fd1;
   return 0;
 }
+
+//Project 4
+
+void sys_lseek(void){
+  struct file *f;
+  int off;
+
+  if(argfd(0, 0, &f) < 0 || argint(1, &off) < 0)
+    return -1;
+  return lseek(f, (uint) off);
+}

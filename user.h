@@ -29,7 +29,7 @@ int ticks_run(int);
 int num_tickets(int pid);
 int set_tickets(int);
 int get_tickets(int);
-void lseek(struct file*,uint);
+void lseek(int, int);
 
 
 // ulib.c
