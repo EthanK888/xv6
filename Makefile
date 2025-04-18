@@ -207,6 +207,7 @@ UPROGS=\
 	_cpu_load_test\
 	_basic_scheduler_tests\
 	_allocatortest\
+	_lseek_test\
 
 fs.img: mkfs README txtfile $(UPROGS)
 	./mkfs fs.img README txtfile $(UPROGS)

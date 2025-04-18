@@ -117,12 +117,12 @@ trap(struct trapframe *tf)
     //Track the number of page faults each program has
     myproc()->pagefaults++;
     uint a = rcr2();
-    cprintf("\nPAGE FAULT %d FOR PROCESS %d\n", myproc()->pagefaults, myproc()->pid);
-    cprintf("memory address causing the page fault: 0x%x\n", a);
+    //cprintf("\nPAGE FAULT %d FOR PROCESS %d\n", myproc()->pagefaults, myproc()->pid);
+    //cprintf("memory address causing the page fault: 0x%x\n", a);
     
     //Round the faulting address down to a page boundary
     a = PGROUNDDOWN(a);
-    cprintf("START OF PAGE FOR THIS MEMORY ACCESS: 0x%x\n", a);
+    //cprintf("START OF PAGE FOR THIS MEMORY ACCESS: 0x%x\n", a);
   
     //Lazy allocator
     #ifdef LAZY
@@ -135,7 +135,7 @@ trap(struct trapframe *tf)
         //Map the frame to the page table for the process
         if (mappages(myproc()->pgdir, (char *)a, PGSIZE, V2P(mem), PTE_W | PTE_U) > -1)
         {
-          cprintf("page table entry added to cover all virtual addresses from 0x%x to 0x%x\n", a, a+PGSIZE-1);
+          //cprintf("page table entry added to cover all virtual addresses from 0x%x to 0x%x\n", a, a+PGSIZE-1);
           break;
         }
         cprintf("error mapping pages\n");

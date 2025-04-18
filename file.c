@@ -134,15 +134,17 @@ filewrite(struct file *f, char *addr, int n)
     int i = 0;
 
     //Project 4: Filling the holes if lseek goes past the size
+    /*ilock(f->ip);
     uint holeSize = f->off - f->ip->size;
     if(holeSize > 0){
-      char* hole = malloc(sizeof(char) * holeSize);
+      char* hole = kalloc(sizeof(char) * holeSize);
       memset(hole, 0, holeSize);
       
       for(int i = 0; i < holeSize; i++){
-        writei(f->ip, hole[i], f->ip->size, 1);
+        writei(f->ip, 0, f->ip->size, 1);
       }
     }
+    iunlock(f->ip);*/
 
     while(i < n){
       int n1 = n - i;
@@ -169,7 +171,7 @@ filewrite(struct file *f, char *addr, int n)
 
 //Project 4
 
-void lseek(struct file* f, uint off){
+int lseek(struct file* f, uint off){
   f->off += off;
-  return;
+  return 1;
 }

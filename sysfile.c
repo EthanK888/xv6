@@ -445,7 +445,7 @@ sys_pipe(void)
 
 //Project 4
 
-void sys_lseek(void){
+int sys_lseek(void){
   struct file *f;
   int off;
 
