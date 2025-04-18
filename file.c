@@ -132,6 +132,18 @@ filewrite(struct file *f, char *addr, int n)
     // might be writing a device like the console.
     int max = ((MAXOPBLOCKS-1-1-2) / 2) * 512;
     int i = 0;
+
+    //Project 4: Filling the holes if lseek goes past the size
+    uint holeSize = f->off - f->ip->size;
+    if(holeSize > 0){
+      char* hole = malloc(sizeof(char) * holeSize);
+      memset(hole, 0, holeSize);
+      
+      for(int i = 0; i < holeSize; i++){
+        writei(f->ip, hole[i], f->ip->size, 1);
+      }
+    }
+
     while(i < n){
       int n1 = n - i;
       if(n1 > max)
