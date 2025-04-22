@@ -133,7 +133,7 @@ filewrite(struct file *f, char *addr, int n)
     int max = ((MAXOPBLOCKS-1-1-2) / 2) * 512;
     int i = 0;
 
-    //Project 4: Filling the holes if lseek goes past the size
+    //Project 4: Filling the holes if lseek goes past the file size
     /*ilock(f->ip);
     uint holeSize = f->off - f->ip->size;
     if(holeSize > 0){
