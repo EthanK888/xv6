@@ -7,7 +7,6 @@
 #include "mmu.h"
 #include "proc.h"
 #include "procinfo.h"
-#include "file.h"
 
 int
 sys_fork(void)
