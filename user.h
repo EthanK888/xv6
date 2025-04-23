@@ -30,7 +30,7 @@ int num_tickets(int pid);
 int set_tickets(int);
 int get_tickets(int);
 int lseek(int, int);
-
+int symlink(char *target, char *path);
 
 // ulib.c
 int stat(const char*, struct stat*);

@@ -453,3 +453,8 @@ int sys_lseek(void){
     return -1;
   return lseek(f, (uint) off);
 }
+
+int sys_symlink(void){
+
+return 1;
+}
