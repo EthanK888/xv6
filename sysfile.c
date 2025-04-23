@@ -239,7 +239,7 @@ bad:
 }
 
 static struct inode*
-create(char *path, short type, short major, short minor)
+create(char *path, short type, short major, short minor, char* target)
 {
   struct inode *ip, *dp;
   char name[DIRSIZ];
@@ -263,6 +263,7 @@ create(char *path, short type, short major, short minor)
   ilock(ip);
   ip->major = major;
   ip->minor = minor;
+  ip->target = target;
   ip->nlink = 1;
   iupdate(ip);
 
@@ -296,7 +297,7 @@ sys_open(void)
   begin_op();
 
   if(omode & O_CREATE){
-    ip = create(path, T_FILE, 0, 0);
+    ip = create(path, T_FILE, 0, 0, 0);
     if(ip == 0){
       end_op();
       return -1;
@@ -339,7 +340,7 @@ sys_mkdir(void)
   struct inode *ip;
 
   begin_op();
-  if(argstr(0, &path) < 0 || (ip = create(path, T_DIR, 0, 0)) == 0){
+  if(argstr(0, &path) < 0 || (ip = create(path, T_DIR, 0, 0, 0)) == 0){
     end_op();
     return -1;
   }
@@ -359,7 +360,7 @@ sys_mknod(void)
   if((argstr(0, &path)) < 0 ||
      argint(1, &major) < 0 ||
      argint(2, &minor) < 0 ||
-     (ip = create(path, T_DEV, major, minor)) == 0){
+     (ip = create(path, T_DEV, major, minor, 0)) == 0){
     end_op();
     return -1;
   }
@@ -454,7 +455,23 @@ int sys_lseek(void){
   return lseek(f, (uint) off);
 }
 
+//create symbolic link from path to target 
 int sys_symlink(void){
+  char *path;
+  char *target;
+  struct inode *ip;
 
-return 1;
+  if(argstr(0, &target) < 0 || argstr(1, &path) < 0 )
+    return -1;
+
+  begin_op();
+  //create symbolic link file type
+  ip = create(path, T_FILE, 0, 0, 0);
+  if(ip == 0){
+    end_op();
+    return -1;
+  }
+  //sucess
+  end_op();
+  return 0;
 }
