@@ -283,16 +283,6 @@ create(char *path, short type, short major, short minor, char* target)
   return ip;
 }
 
-int
-sys_open(void)
-{
-  char *path;
-  int omode;
-  if(argstr(0, &path) < 0 || argint(1, &omode) < 0)
-    return -1;
-  open(path, omode, 0);
-}
-
 //recursive open
 int open(char * path, int omode, int depth) {
   int fd;
@@ -346,6 +336,16 @@ int open(char * path, int omode, int depth) {
   f->writable = (omode & O_WRONLY) || (omode & O_RDWR);
   return fd;
 } 
+
+int
+sys_open(void)
+{
+  char *path;
+  int omode;
+  if(argstr(0, &path) < 0 || argint(1, &omode) < 0)
+    return -1;
+  return open(path, omode, 0);
+}
 
 int
 sys_mkdir(void)

@@ -208,6 +208,7 @@ UPROGS=\
 	_basic_scheduler_tests\
 	_allocatortest\
 	_lseek_test\
+	_symlink_test\
 
 fs.img: mkfs README txtfile $(UPROGS)
 	./mkfs fs.img README txtfile $(UPROGS)
