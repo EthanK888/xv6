@@ -287,12 +287,17 @@ int
 sys_open(void)
 {
   char *path;
-  int fd, omode;
-  struct file *f;
-  struct inode *ip;
-
+  int omode;
   if(argstr(0, &path) < 0 || argint(1, &omode) < 0)
     return -1;
+  open(path, omode, 0);
+}
+
+//recursive open
+int open(char * path, int omode, int depth) {
+  int fd;
+  struct file *f;
+  struct inode *ip;
 
   begin_op();
 
@@ -315,6 +320,15 @@ sys_open(void)
     }
   }
 
+  if (ip->type == T_SYMLINK && omode != O_NOFOLLOW) {
+    iunlockput(ip);
+    end_op();
+    if (depth == 9) {
+      return -1;
+    }
+    return open(ip->target, omode, depth+1);
+  }
+
   if((f = filealloc()) == 0 || (fd = fdalloc(f)) < 0){
     if(f)
       fileclose(f);
@@ -331,7 +345,7 @@ sys_open(void)
   f->readable = !(omode & O_WRONLY);
   f->writable = (omode & O_WRONLY) || (omode & O_RDWR);
   return fd;
-}
+} 
 
 int
 sys_mkdir(void)
