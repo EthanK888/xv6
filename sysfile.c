@@ -466,7 +466,7 @@ int sys_symlink(void){
 
   begin_op();
   //create symbolic link file type
-  ip = create(path, T_SYMLINK, 0, 0, 0);
+  ip = create(path, T_SYMLINK, 0, 0, target);
   if(ip == 0){
     end_op();
     return -1;
