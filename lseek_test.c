@@ -29,6 +29,10 @@ int main(){
     lseek(fd, 10);
     write(fd, "hi\n", 3);
 
+    //Go outside of file size and write
+    //lseek(fd, 166);
+    //write(fd, "hi\n", 3);
+
     close(fd);
     exit();
 }
