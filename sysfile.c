@@ -263,9 +263,15 @@ create(char *path, short type, short major, short minor, char* target)
   ilock(ip);
   ip->major = major;
   ip->minor = minor;
-  ip->target = target;
+  //ip->target = target;
   ip->nlink = 1;
   iupdate(ip);
+
+  if(target != 0){
+    begin_op();
+    writei(ip, target, 0, strlen(target));
+    end_op();
+  }
 
   if(type == T_DIR){  // Create . and .. entries.
     dp->nlink++;  // for ".."
@@ -288,9 +294,9 @@ int open(char * path, int omode, int depth) {
   int fd;
   struct file *f;
   struct inode *ip;
-
+  
   begin_op();
-
+  cprintf("path: %s\n", path);
   if(omode & O_CREATE){
     ip = create(path, T_FILE, 0, 0, 0);
     if(ip == 0){
@@ -302,7 +308,9 @@ int open(char * path, int omode, int depth) {
       end_op();
       return -1;
     }
+    //cprintf("testing for symlink\n");
     ilock(ip);
+    
     if(ip->type == T_DIR && omode != O_RDONLY){
       iunlockput(ip);
       end_op();
@@ -311,12 +319,14 @@ int open(char * path, int omode, int depth) {
   }
 
   if (ip->type == T_SYMLINK && omode != O_NOFOLLOW) {
+    char* target = kalloc();
+    readi(ip, target, 0, ip->size);
     iunlockput(ip);
     end_op();
     if (depth == 9) {
       return -1;
     }
-    return open(ip->target, omode, depth+1);
+    return open(target, omode, depth+1);
   }
 
   if((f = filealloc()) == 0 || (fd = fdalloc(f)) < 0){
