@@ -268,9 +268,9 @@ create(char *path, short type, short major, short minor, char* target)
   iupdate(ip);
 
   if(target != 0){
-    begin_op();
+    //begin_op();
     writei(ip, target, 0, strlen(target));
-    end_op();
+    //end_op();
   }
 
   if(type == T_DIR){  // Create . and .. entries.
@@ -308,25 +308,30 @@ int open(char * path, int omode, int depth) {
       end_op();
       return -1;
     }
-    //cprintf("testing for symlink\n");
+
     ilock(ip);
+    if (ip->type == T_SYMLINK && omode != O_NOFOLLOW) {
+      char* target = kalloc();
+      readi(ip, target, 0, ip->size);
+      iunlockput(ip);
+      end_op();
+      if (depth == 9) {
+        kfree(target);
+        return -1;
+      }
+      else{
+        fd = open(target, omode, depth+1);
+        return fd;
+      }
+    }
+    //cprintf("testing for symlink\n");
+    //ilock(ip);
     
     if(ip->type == T_DIR && omode != O_RDONLY){
       iunlockput(ip);
       end_op();
       return -1;
     }
-  }
-
-  if (ip->type == T_SYMLINK && omode != O_NOFOLLOW) {
-    char* target = kalloc();
-    readi(ip, target, 0, ip->size);
-    iunlockput(ip);
-    end_op();
-    if (depth == 9) {
-      return -1;
-    }
-    return open(target, omode, depth+1);
   }
 
   if((f = filealloc()) == 0 || (fd = fdalloc(f)) < 0){
