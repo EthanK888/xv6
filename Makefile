@@ -210,6 +210,7 @@ UPROGS=\
 	_lseek_test\
 	_symlink_test\
 	_make_large_file\
+	_growfile\
 
 fs.img: mkfs README txtfile $(UPROGS)
 	./mkfs fs.img README txtfile $(UPROGS)
