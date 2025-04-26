@@ -395,7 +395,11 @@ bmap(struct inode *ip, uint bn)
     brelse(bp);
     return addr;
   }
+  bn -= NINDIRECT;
 
+  if(bn < NDOUBLYINDIRECT ){
+    // Load doubly indirect block, allocating if necessary.
+  }
   panic("bmap: out of range");
 }
 
