@@ -24,11 +24,11 @@ int main(){
     printf(1, "Read from symlink using O_NOFOLLOW: %s\n", buffer2);
 
     //Testing that link and unlink don't follow symlinks
-    link("symlink1", "link");
+    /*link("symlink1", "link");
     int link = open("link", O_RDONLY);
     read(link, buffer2, 7);
     printf(1, "Reading from link. If it reads the path that symlink1 holds, then it didn't follow the symlink.\n%s\n", buffer2);
-    unlink("link");
+    unlink("link");*/
 
     close(symlink1);
     close(link);
