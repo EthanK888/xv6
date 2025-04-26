@@ -31,7 +31,7 @@ int main(){
     unlink("link");*/
 
     close(symlink1);
-    close(link);
+    //close(link);
 
     free(buffer);
     free(buffer2);
