@@ -7,12 +7,9 @@ int main(){
     //Create a symlink to txtfile
     symlink("txtfile", "symlink1");
     int symlink1 = open("symlink1", O_RDONLY);
-    //printf(1, "fd: %d\n", symlink1);
-    
-    //Read from the symlink
     char* buffer = malloc(10 * sizeof(char));
     read(symlink1, buffer, 10);
-    printf(1, "Read from symlink: %s\n", buffer);
+    printf(1, buffer);
 
     close(symlink1);
 
