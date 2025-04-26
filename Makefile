@@ -209,6 +209,7 @@ UPROGS=\
 	_allocatortest\
 	_lseek_test\
 	_symlink_test\
+	_growfile\
 
 fs.img: mkfs README txtfile $(UPROGS)
 	./mkfs fs.img README txtfile $(UPROGS)
