@@ -263,15 +263,8 @@ create(char *path, short type, short major, short minor, char* target)
   ilock(ip);
   ip->major = major;
   ip->minor = minor;
-  //ip->target = target;
   ip->nlink = 1;
   iupdate(ip);
-
-  if(target != 0){
-    //begin_op();
-    writei(ip, target, 0, strlen(target));
-    //end_op();
-  }
 
   if(type == T_DIR){  // Create . and .. entries.
     dp->nlink++;  // for ".."
@@ -279,6 +272,13 @@ create(char *path, short type, short major, short minor, char* target)
     // No ip->nlink++ for ".": avoid cyclic ref count.
     if(dirlink(ip, ".", ip->inum) < 0 || dirlink(ip, "..", dp->inum) < 0)
       panic("create dots");
+  }
+
+  if(type == T_SYMLINK){
+    cprintf("creating symlink: %s\n", path);
+    writei(ip, target, 0, strlen(target));
+    iupdate(ip);
+    iunlock(ip);
   }
 
   if(dirlink(dp, name, ip->inum) < 0)
@@ -294,40 +294,48 @@ int open(char * path, int omode, int depth) {
   int fd;
   struct file *f;
   struct inode *ip;
-  
+
   begin_op();
-  cprintf("path: %s\n", path);
-  if(omode & O_CREATE){
+  if (omode & O_CREATE)
+  {
     ip = create(path, T_FILE, 0, 0, 0);
-    if(ip == 0){
+    if (ip == 0)
+    {
       end_op();
       return -1;
     }
-  } else {
-    if((ip = namei(path)) == 0){
+  }
+  else
+  {
+    if ((ip = namei(path)) == 0)
+    {
       end_op();
       return -1;
     }
 
     ilock(ip);
-    if (ip->type == T_SYMLINK && omode != O_NOFOLLOW) {
-      char* target = kalloc();
-      readi(ip, target, 0, ip->size);
+    if (ip->type == T_SYMLINK && omode != O_NOFOLLOW)
+    {
+      char target[128];
+      int r = readi(ip, target, 0, ip->size);
+      target[r] = '\0'; // make sure it's null-terminated
       iunlockput(ip);
       end_op();
-      if (depth == 9) {
-        kfree(target);
+      if (depth == 9)
+      {
         return -1;
       }
-      else{
-        fd = open(target, omode, depth+1);
+      else
+      {
+        fd = open(target, omode, depth + 1);
         return fd;
       }
     }
-    //cprintf("testing for symlink\n");
-    //ilock(ip);
-    
-    if(ip->type == T_DIR && omode != O_RDONLY){
+    // cprintf("testing for symlink\n");
+    // ilock(ip);
+
+    if (ip->type == T_DIR && omode != O_RDONLY)
+    {
       iunlockput(ip);
       end_op();
       return -1;
