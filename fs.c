@@ -372,8 +372,8 @@ iunlockput(struct inode *ip)
 static uint
 bmap(struct inode *ip, uint bn)
 {
-  uint addr, *a;
-  struct buf *bp;
+  uint addr, *a, *b;
+  struct buf *bp, *bp2;
 
   if(bn < NDIRECT){
     if((addr = ip->addrs[bn]) == 0)
@@ -397,9 +397,34 @@ bmap(struct inode *ip, uint bn)
   }
   bn -= NINDIRECT;
 
+  //Project 4: Adding doubly indirect blocks
   if(bn < NDOUBLYINDIRECT ){
     // Load doubly indirect block, allocating if necessary.
+    if((addr = ip->addrs[NDIRECT+1]) == 0)
+      ip->addrs[NDIRECT+1] = addr = balloc(ip->dev);
+    //a becomes the list of indirect blocks pointed to by the doubly indirect block
+    bp = bread(ip->dev, addr);
+    a = (uint*)bp->data;
+    //ibn gives us which indirect block we should be in
+    int ibn = bn/NINDIRECT;
+    if((addr = a[ibn]) == 0){
+      a[ibn] = addr = balloc(ip->dev);
+      log_write(bp);
+    }
+    brelse(bp);
+    //b becomes the list of direct blocks pointed to by the indirect block found in the previous step
+    bp2 = bread(ip->dev, addr);
+    b = (uint*)bp2->data;
+    //dbn gives us which direct block we want
+    int dbn = bn%NINDIRECT;
+    if((addr = b[dbn]) == 0){
+      b[dbn] = addr = balloc(ip->dev);
+      log_write(bp2);
+    }
+    brelse(bp2);
+    return addr;
   }
+
   panic("bmap: out of range");
 }
 
