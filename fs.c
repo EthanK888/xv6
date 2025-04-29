@@ -408,7 +408,7 @@ bmap(struct inode *ip, uint bn)
           if ((bp->data[bi / 8] & m) != 0)
           {
             // block is not free.
-            cprintf("block %d is not free. Leave as is.", lastaddr + 1);
+            cprintf("block %d is not free. Leave as is.\n", lastaddr + 1);
           }
           else
           {
@@ -453,7 +453,7 @@ bmap(struct inode *ip, uint bn)
       {
         // use this to offset by the specific block inside the extent
         uint blockinside = bn - blockcounter;
-        cprintf("actual block for bn %d is %d", bn, addr + blockinside);
+        cprintf("actual block for bn %d is %d\n", bn, addr + blockinside);
         return addr + blockinside;
       }
       // keep track of how many blocks have been counted up
