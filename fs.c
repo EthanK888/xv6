@@ -388,6 +388,7 @@ bmap(struct inode *ip, uint bn)
       cprintf("extent %d not allocated yet.\n", i);
       // find a memory address
       addr = balloc(ip->dev);
+      //log_write(addr);
       cprintf("first block in the extent: %d\n", addr);
 
       struct buf *bp;
@@ -398,19 +399,24 @@ bmap(struct inode *ip, uint bn)
       length = 255;
       for (int j = 1; j < 256; j++) {
         //check if the next block is free
+        cprintf("cur block = %d\n", addr + j);
         bp = bread(ip->dev, BBLOCK(addr + j, sb));
         bi = (addr + j) % BPB;
         m = 1 << (bi % 8);
+        cprintf("checking if free\n");
         if((bp->data[bi/8] & m) != 0) {
-          //block is not free. set length to j - 1
+          //block is not free. set length to j
+          cprintf("block %d is not free. set length to j\n", addr + j);
           length = j;
           break;
         } else {
           cprintf("block %d is free, adding to extent.\n", addr + j);
           //add block to the extent
           uint addernum = balloc(ip->dev);
+          log_write(bp);
           cprintf("balloc block number %d\n", addernum);
         }
+        brelse(bp);
       }
 
       // combine the 3 byte addr with the 1 byte length
