@@ -400,19 +400,19 @@ bmap(struct inode *ip, uint bn)
           struct buf *bp;
           int bi, m;
           // check if the next block is free
-          cprintf("cur block = %d\n", lastaddr + 1);
-          bp = bread(ip->dev, BBLOCK(lastaddr + 1, sb));
-          bi = (lastaddr + 1) % BPB;
+          cprintf("cur block = %d\n", lastaddr + lastlength);
+          bp = bread(ip->dev, BBLOCK(lastaddr + lastlength, sb));
+          bi = (lastaddr + lastlength) % BPB;
           m = 1 << (bi % 8);
           cprintf("checking if free\n");
           if ((bp->data[bi / 8] & m) != 0)
           {
             // block is not free.
-            cprintf("block %d is not free. Leave as is.\n", lastaddr + 1);
+            cprintf("block %d is not free. Leave as is.\n", lastaddr + lastlength);
           }
           else
           {
-            cprintf("block %d is free, adding to extent.\n", lastaddr + 1);
+            cprintf("block %d is free, adding to extent.\n", lastaddr + lastlength);
             // add block to the extent
             uint addernum = balloc(ip->dev);
             log_write(bp);
