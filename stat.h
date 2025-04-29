@@ -2,6 +2,7 @@
 #define T_FILE 2   // File
 #define T_DEV  3   // Device
 #define T_SYMLINK 4 // Symbolic Link
+#define T_EXTENT 5 // Extent
 
 struct stat {
   short type;  // Type of file

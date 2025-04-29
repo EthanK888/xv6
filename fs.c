@@ -471,7 +471,7 @@ itrunc(struct inode *ip)
         cprintf("freeing indirect block\n");
         //If this indirect block is allocated, get the list of direct blocks it points to
         bp2 = bread(ip->dev, a[j]);
-        b = (uint*)bp->data;
+        b = (uint*)bp2->data;
         //Loop through the list of direct blocks and free them if allocated
         for(k = 0; k < NINDIRECT; k++){
           if(b[k]){
