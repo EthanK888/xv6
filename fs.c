@@ -378,7 +378,7 @@ bmap(struct inode *ip, uint bn)
     uint addr, length;
     uint blockcounter = 0;
 
-    for (int i = 0; i < NDIRECT + 2; i++)
+    for (int i = 0; i < NDIRECT + 3; i++)
     {
       uint extent = ip->addrs[i];
 
@@ -415,6 +415,11 @@ bmap(struct inode *ip, uint bn)
           // starting new extent case
           if (addernum != lastaddr + newlength || newlength >= 256)
           {
+            //out of range
+            if (i > 12) {
+              bfree(ip->dev, addernum);
+              break;
+            }
             // block is not free.
             cprintf("block %d is not free. Leave as is.\n", lastaddr + +1);
             cprintf("first block in the new extent: %d\n", addernum);
@@ -435,10 +440,8 @@ bmap(struct inode *ip, uint bn)
 
       // find the length of the current extent by the last byte
       length = extent & 0xFF;
-      cprintf("extent length: %d\n", length);
       // find the starting address of the current extents first block
       addr = extent >> 8;
-      cprintf("extent addr: %d\n", addr);
       // if logical block number is between the starting and ending blocks of the extent
       if (blockcounter <= bn && bn < (blockcounter + length + 1))
       {
