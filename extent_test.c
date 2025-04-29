@@ -14,8 +14,9 @@ int main(){
 
     printf(1, "Reading from test.txt\n");
     memset(buffer, 0, 100);
+    lseek(fd, -19);
     read(fd, buffer, 19);
-    printf(1, "%s", buffer);
+    printf(1, "buffer: %s\n", buffer);
 
     close(fd);
 
