@@ -436,9 +436,9 @@ bmap(struct inode *ip, uint bn)
 static void
 itrunc(struct inode *ip)
 {
-  int i, j;
-  struct buf *bp;
-  uint *a;
+  int i, j, k;
+  struct buf *bp, *bp2;
+  uint *a, *b;
 
   for(i = 0; i < NDIRECT; i++){
     if(ip->addrs[i]){
@@ -457,6 +457,33 @@ itrunc(struct inode *ip)
     brelse(bp);
     bfree(ip->dev, ip->addrs[NDIRECT]);
     ip->addrs[NDIRECT] = 0;
+  }
+
+  //Free doubly indirect blocks
+  if(ip->addrs[NDIRECT+1]){
+    //If doubly indirect block is allocated, get the list of indirect blocks it points to
+    bp = bread(ip->dev, ip->addrs[NDIRECT+1]);
+    a = (uint*)bp->data;
+    //Loop through the list of indirect blocks
+    for(j = 0; j < NINDIRECT; j++){
+      if(a[j]){
+        //If this indirect block is allocated, get the list of direct blocks it points to
+        bp2 = bread(ip->dev, a[j]);
+        b = (uint*)bp->data;
+        //Loop through the list of direct blocks and free them if allocated
+        for(k = 0; k < NINDIRECT; k++){
+          if(b[k])
+            bfree(ip->dev, b[k]);
+        }
+        brelse(bp2);
+        //Free the indirect block
+        bfree(ip->dev, a[j]);
+      }
+    }
+    brelse(bp);
+    //Free the doubly indirect block
+    bfree(ip->dev, ip->addrs[NDIRECT+1]);
+    ip->addrs[NDIRECT+1] = 0;
   }
 
   ip->size = 0;
