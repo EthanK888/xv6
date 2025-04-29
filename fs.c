@@ -384,61 +384,53 @@ bmap(struct inode *ip, uint bn)
 
       // extent not yet allocated.
       // check if the last extent has room for more blocks
-      if (extent == 0 && i > 0)
+      if (extent == 0)
       {
 
         cprintf("extent %d not allocated yet.\n", i);
 
-        // check if we can add another block to the last extent
-        uint lastextent = ip->addrs[i - 1];
-        uint lastaddr = lastextent >> 8;
-        uint lastlength = lastextent & 0xFF;
-
-        //max 256
-        if (lastlength < 256)
+        if (i == 0)
         {
-          struct buf *bp;
-          int bi, m;
+          uint addernum = balloc(ip->dev);
+          // block is not free.
+          cprintf("first block in the new extent: %d\n", addernum);
+          length = 0;
+          // combine the 3 byte addr with the 1 byte length
+          ip->addrs[i] = extent = (addernum << 8) | (length & 0xFF);
+        }
+        else
+        {
+
+          // check if we can add another block to the last extent
+          uint lastextent = ip->addrs[i - 1];
+          uint lastaddr = lastextent >> 8;
+          uint lastlength = lastextent & 0xFF;
+          uint newlength = lastlength + 1;
+
           // check if the next block is free
-          cprintf("cur block = %d\n", lastaddr + lastlength);
-          bp = bread(ip->dev, BBLOCK(lastaddr + lastlength, sb));
-          bi = (lastaddr + lastlength) % BPB;
-          m = 1 << (bi % 8);
-          cprintf("checking if free\n");
-          if ((bp->data[bi / 8] & m) != 0)
+          cprintf("cur block = %d\n", lastaddr + newlength);
+          uint addernum = balloc(ip->dev);
+          cprintf("balloc block number %d\n", addernum);
+
+          // starting new extent case
+          if (addernum != lastaddr + newlength || newlength >= 256)
           {
             // block is not free.
-            cprintf("block %d is not free. Leave as is.\n", lastaddr + lastlength);
+            cprintf("block %d is not free. Leave as is.\n", lastaddr + +1);
+            cprintf("first block in the new extent: %d\n", addernum);
+            length = 0;
+            // combine the 3 byte addr with the 1 byte length
+            ip->addrs[i] = extent = (addernum << 8) | (length & 0xFF);
           }
+          // adding block to the last extent case
           else
           {
-            cprintf("block %d is free, adding to extent.\n", lastaddr + lastlength);
-            // add block to the extent
-            uint addernum = balloc(ip->dev);
-            log_write(bp);
-            lastlength = lastlength + 1;
-            cprintf("balloc block number %d\n", addernum);
-            ip->addrs[i - 1] = extent = (lastaddr << 8) | (lastlength & 0xFF);
+            // subtract from block counter bc were going back to the last extent
+            blockcounter = blockcounter - newlength;
+            cprintf("block %d is free, adding to extent.\n", lastaddr + newlength);
+            ip->addrs[i - 1] = extent = (lastaddr << 8) | (newlength & 0xFF);
           }
-          brelse(bp);
         }
-      }
-
-      // if we werent able to add a block to the last extent, start a new extent
-      if (extent == 0)
-      {
-
-        // find a memory address
-        addr = balloc(ip->dev);
-        // log_write(addr);
-        cprintf("first block in the extent: %d\n", addr);
-
-        // figure out how many blocks we can use in a row
-        // 256 is the max bc 8 bits available for length
-        length = 1;
-
-        // combine the 3 byte addr with the 1 byte length
-        ip->addrs[i] = extent = (addr << 8) | (length & 0xFF);
       }
 
       // find the length of the current extent by the last byte
@@ -447,9 +439,8 @@ bmap(struct inode *ip, uint bn)
       // find the starting address of the current extents first block
       addr = extent >> 8;
       cprintf("extent addr: %d\n", addr);
-
       // if logical block number is between the starting and ending blocks of the extent
-      if (blockcounter <= bn && bn < (blockcounter + length))
+      if (blockcounter <= bn && bn < (blockcounter + length + 1))
       {
         // use this to offset by the specific block inside the extent
         uint blockinside = bn - blockcounter;
@@ -457,7 +448,7 @@ bmap(struct inode *ip, uint bn)
         return addr + blockinside;
       }
       // keep track of how many blocks have been counted up
-      blockcounter = blockcounter + length;
+      blockcounter = blockcounter + length + 1;
     }
   }
   else
