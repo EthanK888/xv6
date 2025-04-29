@@ -9,20 +9,23 @@ int main(){
 
     printf(1, "Writing to test.txt\n");
     char* buffer = malloc(100);
-    buffer = "This is a sentence\n";
+    memmove(buffer, "This is a sentence\n", 19);
     write(fd, buffer, 19);
     printf(1, "Done writing\n");
 
     printf(1, "Reading from test.txt\n");
+    printf(1, "test0\n");
     memset(buffer, 0, 100);
+    printf(1, "test1\n");
     lseek(fd, -19);
+    printf(1, "test2\n");
     read(fd, buffer, 19);
     printf(1, "buffer: %s\n", buffer);
 
     close(fd);
 
     //Test a large file
-    int fd = open("testlarge.txt", O_CREATE | O_EXTENT | O_RDWR);
+    fd = open("testlarge.txt", O_CREATE | O_EXTENT | O_RDWR);
 
     printf(1, "Writing to testlarge.txt\n");
     char* a = malloc(1000000);
@@ -32,5 +35,8 @@ int main(){
 
     close(fd);
 
+    free(buffer);
+    free(a);
+    
     exit();
 }
