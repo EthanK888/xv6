@@ -372,57 +372,129 @@ iunlockput(struct inode *ip)
 static uint
 bmap(struct inode *ip, uint bn)
 {
-  uint addr, *a, *b;
-  struct buf *bp, *bp2;
 
-  if(bn < NDIRECT){
-    if((addr = ip->addrs[bn]) == 0)
-      ip->addrs[bn] = addr = balloc(ip->dev);
-    return addr;
+  if (ip->type == T_EXTENT)
+  {
+    uint addr, length;
+    uint blockcounter = 0;
+
+    
+    for (int i = 0; i < NDIRECT + 2; i++) {
+      uint extent = ip->addrs[i];
+
+      //extent not yet allocated. find some consecutive free blocks
+      if (extent == 0)
+      {
+      cprintf("extent %d not allocated yet.", i);
+      // find a memory address
+      addr = balloc(ip->dev);
+      cprintf("first block in the extent: %d", addr);
+
+      struct buf *bp;
+      int bi, m;
+
+      // figure out how many blocks we can use in a row
+      // 256 is the max bc 8 bits available for length
+      length = 255;
+      for (int j = 1; j < 256; j++) {
+        //check if the next block is free
+        bp = bread(ip->dev, BBLOCK(addr + j, sb));
+        bi = (addr + j) % BPB;
+        m = 1 << (bi % 8);
+        if((bp->data[bi/8] & m) != 0) {
+          //block is not free. set length to j - 1
+          length = j;
+        } else {
+          cprintf("block %d is free, adding to extent.", addr + j);
+          //add block to the extent
+          uint addernum = balloc(ip->dev);
+          cprintf("balloc block number %d", addernum);
+        }
+      }
+
+      // combine the 3 byte addr with the 1 byte length
+      ip->addrs[i] = extent = (addr << 8) | (length & 0xFF);
+      }
+
+      //find the length of the current extent by the last byte
+      length = extent & 0xFF;
+      cprintf("extent length: %d", length);
+      //find the starting address of the current extents first block
+      addr = extent >> 8;
+      cprintf("extent addr: %d", addr);
+
+      //if logical block number is between the starting and ending blocks of the extent
+      if (blockcounter <= bn && bn < (blockcounter + length)) {
+        //use this to offset by the specific block inside the extent 
+        uint blockinside = bn-blockcounter;
+        cprintf("actual block for bn %d is %d", bn, addr + blockinside);
+        return addr + blockinside;
+      }
+      //keep track of how many blocks have been counted up
+      blockcounter = blockcounter + length;
+    }
   }
-  bn -= NDIRECT;
+  else
+  {
 
-  if(bn < NINDIRECT){
-    // Load indirect block, allocating if necessary.
-    if((addr = ip->addrs[NDIRECT]) == 0)
-      ip->addrs[NDIRECT] = addr = balloc(ip->dev);
-    bp = bread(ip->dev, addr);
-    a = (uint*)bp->data;
-    if((addr = a[bn]) == 0){
-      a[bn] = addr = balloc(ip->dev);
-      log_write(bp);
-    }
-    brelse(bp);
-    return addr;
-  }
-  bn -= NINDIRECT;
+    uint addr, *a, *b;
+    struct buf *bp, *bp2;
 
-  //Project 4: Adding doubly indirect blocks
-  if(bn < NDOUBLYINDIRECT ){
-    // Load doubly indirect block, allocating if necessary.
-    if((addr = ip->addrs[NDIRECT+1]) == 0)
-      ip->addrs[NDIRECT+1] = addr = balloc(ip->dev);
-    //a becomes the list of indirect blocks pointed to by the doubly indirect block
-    bp = bread(ip->dev, addr);
-    a = (uint*)bp->data;
-    //ibn gives us which indirect block we should be in
-    int ibn = bn/NINDIRECT;
-    if((addr = a[ibn]) == 0){
-      a[ibn] = addr = balloc(ip->dev);
-      log_write(bp);
+    if (bn < NDIRECT)
+    {
+      if ((addr = ip->addrs[bn]) == 0)
+        ip->addrs[bn] = addr = balloc(ip->dev);
+      return addr;
     }
-    brelse(bp);
-    //b becomes the list of direct blocks pointed to by the indirect block found in the previous step
-    bp2 = bread(ip->dev, addr);
-    b = (uint*)bp2->data;
-    //dbn gives us which direct block we want
-    int dbn = bn%NINDIRECT;
-    if((addr = b[dbn]) == 0){
-      b[dbn] = addr = balloc(ip->dev);
-      log_write(bp2);
+    bn -= NDIRECT;
+
+    if (bn < NINDIRECT)
+    {
+      // Load indirect block, allocating if necessary.
+      if ((addr = ip->addrs[NDIRECT]) == 0)
+        ip->addrs[NDIRECT] = addr = balloc(ip->dev);
+      bp = bread(ip->dev, addr);
+      a = (uint *)bp->data;
+      if ((addr = a[bn]) == 0)
+      {
+        a[bn] = addr = balloc(ip->dev);
+        log_write(bp);
+      }
+      brelse(bp);
+      return addr;
     }
-    brelse(bp2);
-    return addr;
+    bn -= NINDIRECT;
+
+    // Project 4: Adding doubly indirect blocks
+    if (bn < NDOUBLYINDIRECT)
+    {
+      // Load doubly indirect block, allocating if necessary.
+      if ((addr = ip->addrs[NDIRECT + 1]) == 0)
+        ip->addrs[NDIRECT + 1] = addr = balloc(ip->dev);
+      // a becomes the list of indirect blocks pointed to by the doubly indirect block
+      bp = bread(ip->dev, addr);
+      a = (uint *)bp->data;
+      // ibn gives us which indirect block we should be in
+      int ibn = bn / NINDIRECT;
+      if ((addr = a[ibn]) == 0)
+      {
+        a[ibn] = addr = balloc(ip->dev);
+        log_write(bp);
+      }
+      brelse(bp);
+      // b becomes the list of direct blocks pointed to by the indirect block found in the previous step
+      bp2 = bread(ip->dev, addr);
+      b = (uint *)bp2->data;
+      // dbn gives us which direct block we want
+      int dbn = bn % NINDIRECT;
+      if ((addr = b[dbn]) == 0)
+      {
+        b[dbn] = addr = balloc(ip->dev);
+        log_write(bp2);
+      }
+      brelse(bp2);
+      return addr;
+    }
   }
 
   panic("bmap: out of range");
