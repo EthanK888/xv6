@@ -4,6 +4,7 @@
 #include "fcntl.h"
 
 int main(){
+    //Test a small file
     int fd = open("test.txt", O_CREATE | O_EXTENT | O_RDWR);
 
     printf(1, "Writing to test.txt\n");
@@ -17,6 +18,17 @@ int main(){
     lseek(fd, -19);
     read(fd, buffer, 19);
     printf(1, "buffer: %s\n", buffer);
+
+    close(fd);
+
+    //Test a large file
+    int fd = open("testlarge.txt", O_CREATE | O_EXTENT | O_RDWR);
+
+    printf(1, "Writing to testlarge.txt\n");
+    char* a = malloc(1000000);
+    memset(a, 'a', 1000000);
+    write(fd, a, 1000000);
+    printf(1, "Done writing\n");
 
     close(fd);
 
