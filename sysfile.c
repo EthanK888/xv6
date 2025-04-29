@@ -251,7 +251,7 @@ create(char *path, short type, short major, short minor, char* target)
   if((ip = dirlookup(dp, name, 0)) != 0){
     iunlockput(dp);
     ilock(ip);
-    if(type == T_FILE && ip->type == T_FILE)
+    if((type == T_FILE && ip->type == T_FILE) || (type == T_EXTENT && ip->type == T_EXTENT))
       return ip;
     iunlockput(ip);
     return 0;
@@ -298,11 +298,23 @@ int open(char * path, int omode, int depth) {
   begin_op();
   if (omode & O_CREATE)
   {
-    ip = create(path, T_FILE, 0, 0, 0);
-    if (ip == 0)
+    if (omode & O_EXTENT)
     {
-      end_op();
-      return -1;
+      ip = create(path, T_EXTENT, 0, 0, 0);
+      if (ip == 0)
+      {
+        end_op();
+        return -1;
+      }
+    }
+    else
+    {
+      ip = create(path, T_FILE, 0, 0, 0);
+      if (ip == 0)
+      {
+        end_op();
+        return -1;
+      }
     }
   }
   else
