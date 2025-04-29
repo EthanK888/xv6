@@ -385,10 +385,10 @@ bmap(struct inode *ip, uint bn)
       //extent not yet allocated. find some consecutive free blocks
       if (extent == 0)
       {
-      cprintf("extent %d not allocated yet.", i);
+      cprintf("extent %d not allocated yet.\n", i);
       // find a memory address
       addr = balloc(ip->dev);
-      cprintf("first block in the extent: %d", addr);
+      cprintf("first block in the extent: %d\n", addr);
 
       struct buf *bp;
       int bi, m;
@@ -404,11 +404,12 @@ bmap(struct inode *ip, uint bn)
         if((bp->data[bi/8] & m) != 0) {
           //block is not free. set length to j - 1
           length = j;
+          break;
         } else {
-          cprintf("block %d is free, adding to extent.", addr + j);
+          cprintf("block %d is free, adding to extent.\n", addr + j);
           //add block to the extent
           uint addernum = balloc(ip->dev);
-          cprintf("balloc block number %d", addernum);
+          cprintf("balloc block number %d\n", addernum);
         }
       }
 
@@ -418,10 +419,10 @@ bmap(struct inode *ip, uint bn)
 
       //find the length of the current extent by the last byte
       length = extent & 0xFF;
-      cprintf("extent length: %d", length);
+      cprintf("extent length: %d\n", length);
       //find the starting address of the current extents first block
       addr = extent >> 8;
-      cprintf("extent addr: %d", addr);
+      cprintf("extent addr: %d\n", addr);
 
       //if logical block number is between the starting and ending blocks of the extent
       if (blockcounter <= bn && bn < (blockcounter + length)) {
