@@ -412,15 +412,15 @@ bmap(struct inode *ip, uint bn)
           }
           else
           {
-            cprintf("block %d is free, adding to extent.\n", addr + 1);
+            cprintf("block %d is free, adding to extent.\n", lastaddr + 1);
             // add block to the extent
             uint addernum = balloc(ip->dev);
             log_write(bp);
             lastlength = lastlength + 1;
             cprintf("balloc block number %d\n", addernum);
+            ip->addrs[i - 1] = extent = (lastaddr << 8) | (lastlength & 0xFF);
           }
           brelse(bp);
-          ip->addrs[i - 1] = extent = (lastaddr << 8) | (lastlength & 0xFF);
         }
       }
 
