@@ -213,6 +213,7 @@ UPROGS=\
 	_make_large_file\
 	_extent_test\
 	_break_extent\
+	_stat\
 
 fs.img: mkfs README txtfile $(UPROGS)
 	./mkfs fs.img README txtfile $(UPROGS)
