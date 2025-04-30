@@ -624,6 +624,9 @@ stati(struct inode *ip, struct stat *st)
   st->type = ip->type;
   st->nlink = ip->nlink;
   st->size = ip->size;
+  for (int i = 0; i < NDIRECT + 2; i++) {
+    st->addrs[i] = ip->addrs[i];
+  }
 }
 
 //PAGEBREAK!
