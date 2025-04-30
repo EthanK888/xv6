@@ -528,60 +528,88 @@ bmap(struct inode *ip, uint bn)
 static void
 itrunc(struct inode *ip)
 {
-  int i, j, k;
-  struct buf *bp, *bp2;
-  uint *a, *b;
 
-  for(i = 0; i < NDIRECT; i++){
-    if(ip->addrs[i]){
-      bfree(ip->dev, ip->addrs[i]);
-      ip->addrs[i] = 0;
-    }
-  }
+  if (ip->type == T_EXTENT)
+  {
+    for (int i = 0; i < NDIRECT + 2; i++)
+    {
+      uint extent = ip->addrs[i];
+      uint addr = extent >> 8;
+      uint length = extent & 0xFF;
 
-  if(ip->addrs[NDIRECT]){
-    bp = bread(ip->dev, ip->addrs[NDIRECT]);
-    a = (uint*)bp->data;
-    for(j = 0; j < NINDIRECT; j++){
-      if(a[j])
-        bfree(ip->dev, a[j]);
-    }
-    brelse(bp);
-    bfree(ip->dev, ip->addrs[NDIRECT]);
-    ip->addrs[NDIRECT] = 0;
-  }
-
-  //Free doubly indirect blocks
-  if(ip->addrs[NDIRECT+1]){
-    cprintf("freeing doubly indirect block\n");
-    //If doubly indirect block is allocated, get the list of indirect blocks it points to
-    bp = bread(ip->dev, ip->addrs[NDIRECT+1]);
-    a = (uint*)bp->data;
-    //Loop through the list of indirect blocks
-    for(j = 0; j < NINDIRECT; j++){
-      if(a[j]){
-        cprintf("freeing indirect block\n");
-        //If this indirect block is allocated, get the list of direct blocks it points to
-        bp2 = bread(ip->dev, a[j]);
-        b = (uint*)bp2->data;
-        //Loop through the list of direct blocks and free them if allocated
-        for(k = 0; k < NINDIRECT; k++){
-          if(b[k]){
-            cprintf("freeing direct block %d\n", k);
-            bfree(ip->dev, b[k]);
-          }
-        }
-        brelse(bp2);
-        //Free the indirect block
-        cprintf("free indirect block %d\n", j);
-        bfree(ip->dev, a[j]);
-        cprintf("freed\n");
+      for (int j = 1; j < length + 1; j++)
+      {
+        bfree(ip->dev, addr);
+        addr = addr + j;
       }
     }
-    brelse(bp);
-    //Free the doubly indirect block
-    bfree(ip->dev, ip->addrs[NDIRECT+1]);
-    ip->addrs[NDIRECT+1] = 0;
+  }
+  else
+  {
+    int i, j, k;
+    struct buf *bp, *bp2;
+    uint *a, *b;
+
+    for (i = 0; i < NDIRECT; i++)
+    {
+      if (ip->addrs[i])
+      {
+        bfree(ip->dev, ip->addrs[i]);
+        ip->addrs[i] = 0;
+      }
+    }
+
+    if (ip->addrs[NDIRECT])
+    {
+      bp = bread(ip->dev, ip->addrs[NDIRECT]);
+      a = (uint *)bp->data;
+      for (j = 0; j < NINDIRECT; j++)
+      {
+        if (a[j])
+          bfree(ip->dev, a[j]);
+      }
+      brelse(bp);
+      bfree(ip->dev, ip->addrs[NDIRECT]);
+      ip->addrs[NDIRECT] = 0;
+    }
+
+    // Free doubly indirect blocks
+    if (ip->addrs[NDIRECT + 1])
+    {
+      cprintf("freeing doubly indirect block\n");
+      // If doubly indirect block is allocated, get the list of indirect blocks it points to
+      bp = bread(ip->dev, ip->addrs[NDIRECT + 1]);
+      a = (uint *)bp->data;
+      // Loop through the list of indirect blocks
+      for (j = 0; j < NINDIRECT; j++)
+      {
+        if (a[j])
+        {
+          cprintf("freeing indirect block\n");
+          // If this indirect block is allocated, get the list of direct blocks it points to
+          bp2 = bread(ip->dev, a[j]);
+          b = (uint *)bp2->data;
+          // Loop through the list of direct blocks and free them if allocated
+          for (k = 0; k < NINDIRECT; k++)
+          {
+            if (b[k])
+            {
+              cprintf("freeing direct block %d\n", k);
+              bfree(ip->dev, b[k]);
+            }
+          }
+          brelse(bp2);
+          // Free the indirect block
+          cprintf("free indirect block %d\n", j);
+          bfree(ip->dev, a[j]);
+          cprintf("freed\n");
+        }
+      }
+      brelse(bp);
+      // Free the doubly indirect block
+      bfree(ip->dev, ip->addrs[NDIRECT + 1]);
+      ip->addrs[NDIRECT + 1] = 0;
+    }
   }
 
   ip->size = 0;
