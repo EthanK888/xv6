@@ -4,7 +4,7 @@
 #include "fcntl.h"
 
 int main(){
-    int fd = open("largefile.txt", O_CREATE | O_WRONLY | O_EXTENT);
+    int fd = open("largefile.txt", O_CREATE | O_WRONLY);
     char* a = malloc(8388608);
     memset(a, 'a', 8388608);
 
