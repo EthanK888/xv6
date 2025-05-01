@@ -19,6 +19,14 @@ int main(){
     //Create a loop of symlinks (should fail to open)
     symlink("symlinkLoop1", "symlinkLoop2");
     symlink("symlinkLoop2", "symlinkLoop1");
+    int test = open("symlinkLoop1", O_RDONLY);
+    if (test < 0) {
+    printf(1, "Failed to open symlink loop as expected\n");
+    } else {
+    printf(1, "Unexpectedly opened symlink loop\n");
+    close(test);
+    }
+
 
     //Read from the symlink using O_NOFOLLOW
     char* buffer2 = malloc(7 * sizeof(char));

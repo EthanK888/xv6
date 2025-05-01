@@ -214,6 +214,7 @@ UPROGS=\
 	_extent_test\
 	_break_extent\
 	_stat\
+	_symlink_test1\
 
 fs.img: mkfs README txtfile $(UPROGS)
 	./mkfs fs.img README txtfile $(UPROGS)
