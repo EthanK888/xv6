@@ -209,8 +209,8 @@ UPROGS=\
 	_allocatortest\
 	_lseek_test\
 	_symlink_test\
-	_make_large_file\
 	_growfile\
+	_make_large_file\
 	_extent_test\
 	_break_extent\
 	_stat\
